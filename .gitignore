@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Generated data (recreated on first start)
+*.db
+*.db-journal
+
+# Local notes and tooling
+HANDOFF.md
+.vscode/
+.idea/
+.claude/
+.env
+*.log
+
+# Eval run details (the summary evals/results/latest.md is committed)
+evals/results/*.json
