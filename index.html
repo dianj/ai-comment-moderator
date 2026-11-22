@@ -61,11 +61,32 @@
 
         <div id="adminPanel" class="panel">
             <p style="color: #94a3b8; margin-bottom: 16px; font-size: 14px;">Тук се виждат всички опити за коментари (включително блокираните), оценката за токсичност и възможност за ръчна намеса (Human-in-the-Loop).</p>
+            <div id="adminLogin" class="form-box">
+                <h3 style="margin-bottom: 12px;">Вход за модератори</h3>
+                <input type="password" id="adminTokenInput" placeholder="Админ токен (ADMIN_TOKEN)" autocomplete="off">
+                <button id="adminLoginBtn" class="submit-btn" onclick="adminLogin()">Вход</button>
+                <div id="adminError" style="color: #fca5a5; margin-top: 10px; font-size: 14px;"></div>
+            </div>
             <div id="auditLogList"></div>
         </div>
     </div>
 
     <script>
+        // Everything that comes from users or from the model is untrusted: it is only ever
+        // rendered through escapeHtml() or textContent, never as raw HTML.
+        const STATUSES = ['APPROVED', 'REJECTED', 'NEEDS_REVIEW'];
+        const ADMIN_KEY = 'moderatorAdminToken';
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        function safeStatus(status) {
+            return STATUSES.includes(status) ? status : 'NEEDS_REVIEW';
+        }
+
         function switchTab(tab) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -75,6 +96,7 @@
             } else {
                 document.querySelectorAll('.tab-btn')[1].classList.add('active');
                 document.getElementById('adminPanel').classList.add('active');
+                loadAuditLog();
             }
         }
 
@@ -83,35 +105,70 @@
             const data = await res.json();
 
             document.getElementById('pubCount').textContent = data.public.length;
-            document.getElementById('allCount').textContent = data.audit_log.length;
-
             document.getElementById('publicCommentsList').innerHTML = data.public.map(c => `
                 <div class="comment-item">
                     <div class="comment-meta">
-                        <strong>${c.author}</strong>
-                        <span>${c.created_at} • <span class="badge APPROVED">Verified Clean (${c.toxicity_score}%)</span></span>
+                        <strong>${escapeHtml(c.author)}</strong>
+                        <span>${escapeHtml(c.created_at)} • <span class="badge APPROVED">Verified Clean (${Number(c.toxicity_score)}%)</span></span>
                     </div>
-                    <p>${c.content}</p>
+                    <p>${escapeHtml(c.content)}</p>
                 </div>
             `).join('');
+        }
 
-            document.getElementById('auditLogList').innerHTML = data.audit_log.map(c => `
+        function adminLogin() {
+            const token = document.getElementById('adminTokenInput').value.trim();
+            if (!token) return;
+            sessionStorage.setItem(ADMIN_KEY, token);
+            loadAuditLog();
+        }
+
+        function adminFetch(url, options = {}) {
+            const headers = { ...(options.headers || {}), 'X-Admin-Token': sessionStorage.getItem(ADMIN_KEY) || '' };
+            return fetch(url, { ...options, headers });
+        }
+
+        async function loadAuditLog() {
+            const list = document.getElementById('auditLogList');
+            const login = document.getElementById('adminLogin');
+            const error = document.getElementById('adminError');
+            if (!sessionStorage.getItem(ADMIN_KEY)) {
+                login.style.display = 'block';
+                list.innerHTML = '';
+                return;
+            }
+            const res = await adminFetch('/api/admin/comments');
+            if (res.status === 401) {
+                sessionStorage.removeItem(ADMIN_KEY);
+                login.style.display = 'block';
+                error.textContent = 'Невалиден токен.';
+                list.innerHTML = '';
+                return;
+            }
+            const data = await res.json();
+            login.style.display = 'none';
+            error.textContent = '';
+            document.getElementById('allCount').textContent = data.audit_log.length;
+            list.innerHTML = data.audit_log.map(c => {
+                const status = safeStatus(c.status);
+                const id = Number(c.id);
+                return `
                 <div class="comment-item">
                     <div class="comment-meta">
-                        <strong>#${c.id} — ${c.author} (${c.created_at})</strong>
+                        <strong>#${id} — ${escapeHtml(c.author)} (${escapeHtml(c.created_at)})</strong>
                         <span>
-                            <span class="badge ${c.status}">${c.status}</span>
-                            <span class="badge" style="background:#334155; color:#38bdf8;">${c.category} • Toxicity: ${c.toxicity_score}%</span>
+                            <span class="badge ${status}">${status}</span>
+                            <span class="badge" style="background:#334155; color:#38bdf8;">${escapeHtml(c.category)} • Toxicity: ${Number(c.toxicity_score)}%</span>
                         </span>
                     </div>
-                    <p style="margin-bottom: 8px;">${c.content}</p>
-                    <div style="font-size: 12px; color: #94a3b8;"><strong>AI Анализ:</strong> ${c.ai_reason}</div>
+                    <p style="margin-bottom: 8px;">${escapeHtml(c.content)}</p>
+                    <div style="font-size: 12px; color: #94a3b8;"><strong>AI Анализ:</strong> ${escapeHtml(c.ai_reason)}</div>
                     <div class="admin-actions">
-                        <button class="btn-sm btn-approve" onclick="overrideStatus(${c.id}, 'APPROVED')">Одобри ръчно</button>
-                        <button class="btn-sm btn-reject" onclick="overrideStatus(${c.id}, 'REJECTED')">Блокирай</button>
+                        <button class="btn-sm btn-approve" onclick="overrideStatus(${id}, 'APPROVED')">Одобри ръчно</button>
+                        <button class="btn-sm btn-reject" onclick="overrideStatus(${id}, 'REJECTED')">Блокирай</button>
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
 
         async function submitComment() {
@@ -135,30 +192,41 @@
 
             btn.disabled = false;
             btn.textContent = "Публикувай коментар";
-
-            banner.className = `feedback-banner ${data.status}`;
             banner.style.display = 'block';
 
-            if (data.status === 'APPROVED') {
-                banner.innerHTML = `<strong>Коментарът е публикуван!</strong> (${data.category}, Токсичност: ${data.toxicity_score}%)`;
+            if (!res.ok) {
+                banner.className = 'feedback-banner REJECTED';
+                const message = res.status === 429 ? 'Твърде много коментари. Опитайте отново след минута.'
+                    : res.status === 422 ? 'Коментарът или името са твърде дълги.'
+                    : (data.error || 'Грешка при изпращане.');
+                banner.innerHTML = `<strong>${escapeHtml(message)}</strong>`;
+                return;
+            }
+
+            const status = safeStatus(data.status);
+            banner.className = `feedback-banner ${status}`;
+            if (status === 'APPROVED') {
+                banner.innerHTML = `<strong>Коментарът е публикуван!</strong> (${escapeHtml(data.category)}, Токсичност: ${Number(data.toxicity_score)}%)`;
                 document.getElementById('contentInput').value = '';
-            } else if (data.status === 'REJECTED') {
-                banner.innerHTML = `<strong>Коментарът е блокиран от AI модератора.</strong><br>Категория: ${data.category} | Причина: ${data.reason}`;
+            } else if (status === 'REJECTED') {
+                banner.innerHTML = `<strong>Коментарът е блокиран от AI модератора.</strong><br>Категория: ${escapeHtml(data.category)} | Причина: ${escapeHtml(data.reason)}`;
             } else {
-                banner.innerHTML = `<strong>Коментарът е изпратен за преглед от модератор.</strong><br>Причина: ${data.reason}`;
+                banner.innerHTML = `<strong>Коментарът е изпратен за преглед от модератор.</strong><br>Причина: ${escapeHtml(data.reason)}`;
                 document.getElementById('contentInput').value = '';
             }
 
             loadComments();
+            if (document.getElementById('adminPanel').classList.contains('active')) loadAuditLog();
         }
 
         async function overrideStatus(id, newStatus) {
-            await fetch('/api/moderate', {
+            await adminFetch('/api/moderate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ comment_id: id, new_status: newStatus })
             });
             loadComments();
+            loadAuditLog();
         }
 
         loadComments();
