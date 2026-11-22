@@ -35,7 +35,7 @@ def test_admin_log_shows_html_as_text_after_login(page, app_url, fake_lm):
     httpx.post(f"{app_url}/api/comments", json={"author": XSS, "content": XSS})
 
     page.goto(app_url)
-    page.click("text=Модераторски")
+    page.click("#tabAdmin")
     page.fill("#adminTokenInput", ADMIN_TOKEN)
     page.click("#adminLoginBtn")
     page.wait_for_selector("#auditLogList .comment-item")
@@ -45,6 +45,18 @@ def test_admin_log_shows_html_as_text_after_login(page, app_url, fake_lm):
 
 def test_admin_log_is_hidden_without_login(page, app_url):
     page.goto(app_url)
-    page.click("text=Модераторски")
+    page.click("#tabAdmin")
     assert page.locator("#auditLogList .comment-item").count() == 0
+
+
+def test_english_is_the_default_and_bulgarian_is_remembered(page, app_url):
+    page.goto(app_url)
+    assert page.get_attribute("html", "lang") == "en"
+    assert page.inner_text("#submitBtn") == "Post comment"
+
+    page.click(".lang-btn[data-lang='bg']")
+    assert page.inner_text("#submitBtn") == "Публикувай коментар"
+    page.reload()
+    assert page.get_attribute("html", "lang") == "bg"
+    assert page.inner_text("#submitBtn") == "Публикувай коментар"
 

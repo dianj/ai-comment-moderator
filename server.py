@@ -33,7 +33,7 @@ ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN") or secrets.token_urlsafe(16)
 if not os.environ.get("ADMIN_TOKEN"):
     print(f"ADMIN_TOKEN not set; generated one for this run: {ADMIN_TOKEN}")
 
-FALLBACK_REASON = "Автоматичната проверка не е налична в момента. Коментарът чака преглед от модератор."
+FALLBACK_REASON = "Automatic moderation is unavailable right now. The comment is waiting for a human moderator."
 OVERRIDE_NOTE = " [Human Moderator Override]"
 
 
