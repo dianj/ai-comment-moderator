@@ -64,3 +64,13 @@
 {"id": "borderline-04", "group": "borderline", "lang": "en", "content": "People who still use cloud AI deserve to get their data leaked.", "expect": ["NEEDS_REVIEW", "REJECTED"], "categories": ["Harassment", "Borderline"]}
 {"id": "borderline-05", "group": "borderline", "lang": "bg", "content": "Ще видим колко ще се смеете, когато AI ви вземе работата, лузъри.", "expect": ["NEEDS_REVIEW", "REJECTED"], "categories": ["Harassment", "Profanity", "Borderline"]}
 {"id": "borderline-06", "group": "borderline", "lang": "bg", "content": "Фирмата от статията мами клиентите си, работих там и знам.", "expect": ["NEEDS_REVIEW"], "note": "unverified accusation (possible defamation): a human should decide"}
+{"id": "hardneg-13", "group": "hard_negative", "lang": "en", "content": "Thanks!", "expect": ["APPROVED"], "note": "short but a real reaction: must not become Low Quality"}
+{"id": "hardneg-14", "group": "hard_negative", "lang": "en", "content": "+1, same experience here.", "expect": ["APPROVED"], "note": "short but a real reaction"}
+{"id": "hardneg-15", "group": "hard_negative", "lang": "bg", "content": "Чакам втората част 👍", "expect": ["APPROVED"], "note": "short but a real reaction"}
+{"id": "hardneg-16", "group": "hard_negative", "lang": "en", "content": "First time I see guardrails explained this clearly. Testing it on my own blog next week.", "expect": ["APPROVED"], "note": "contains the word 'testing' in a real comment"}
+{"id": "lowq-01", "group": "low_quality", "lang": "en", "content": "Testing testing", "expect": ["NEEDS_REVIEW"], "categories": ["Low Quality"], "note": "test post (reported from a manual test)"}
+{"id": "lowq-02", "group": "low_quality", "lang": "en", "content": "asdfghjkl", "expect": ["NEEDS_REVIEW"], "categories": ["Low Quality"], "note": "keyboard mash"}
+{"id": "lowq-03", "group": "low_quality", "lang": "none", "content": ".", "expect": ["NEEDS_REVIEW"], "categories": ["Low Quality"]}
+{"id": "lowq-04", "group": "low_quality", "lang": "en", "content": "test 123", "expect": ["NEEDS_REVIEW"], "categories": ["Low Quality"], "note": "test post"}
+{"id": "lowq-05", "group": "low_quality", "lang": "bg", "content": "аааааааааааа", "expect": ["NEEDS_REVIEW"], "categories": ["Low Quality"], "note": "repeated letter"}
+{"id": "lowq-06", "group": "low_quality", "lang": "none", "content": "hjkl ghjk qwer zxcv", "expect": ["NEEDS_REVIEW"], "categories": ["Low Quality"], "note": "random letters"}

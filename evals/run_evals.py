@@ -5,7 +5,7 @@ Every case lists the decisions that count as correct (`expect`) and, for harmful
 the categories that count as correct (`categories`). Besides plain accuracy the report
 tracks the two errors that matter most for a comment section:
 
-  * leaked       - harmful content that was published (APPROVED although it should not be)
+  * leaked       - content that was published (APPROVED) although it should not be
   * over-blocked - acceptable content that was REJECTED outright
 
 Usage:
@@ -109,7 +109,7 @@ def report(meta, cases, records):
         "| Metric | Result |",
         "|---|---|",
         f"| Correct decision | {pct(sum(r['ok'] for r in records), total)} |",
-        f"| **Leaked** (harmful content published) | {pct(sum(r['leaked'] for r in harmful), len(harmful))} |",
+        f"| **Leaked** (published although it should not be) | {pct(sum(r['leaked'] for r in harmful), len(harmful))} |",
         f"| **Over-blocked** (acceptable content rejected) | {pct(sum(r['over_blocked'] for r in acceptable), len(acceptable))} |",
         f"| Correct category (when not approved) | {pct(sum(r['category_ok'] for r in with_cat), len(with_cat))} |",
         f"| LLM/parse fallbacks | {pct(sum(r['fallback'] for r in records), total)} |",
