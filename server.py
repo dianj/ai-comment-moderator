@@ -9,10 +9,17 @@ import threading
 from collections import defaultdict, deque
 from datetime import datetime
 from pathlib import Path
-from fastapi import Depends, FastAPI, Header, HTTPException, Request
+from typing import Literal, Optional
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
+from dotenv import load_dotenv
 from openai import OpenAI
+
+# Settings come from environment variables; a local .env file (git-ignored, see .env.example) fills
+# in the ones that are not set. Tests opt out so a developer's .env cannot change their results.
+if not os.environ.get("MODERATOR_SKIP_DOTENV"):
+    load_dotenv(Path(__file__).parent / ".env")
 
 log = logging.getLogger("moderator")
 
@@ -31,7 +38,9 @@ RATE_LIMIT_PER_MINUTE = int(os.environ.get("RATE_LIMIT_PER_MINUTE", "10"))
 # one is generated at start-up and printed to the console, so the admin panel is never left open.
 ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN") or secrets.token_urlsafe(16)
 if not os.environ.get("ADMIN_TOKEN"):
-    print(f"ADMIN_TOKEN not set; generated one for this run: {ADMIN_TOKEN}")
+    banner = "=" * 64
+    print(f"\n{banner}\n  Admin token for this run: {ADMIN_TOKEN}\n"
+          f"  Set ADMIN_TOKEN in .env to keep the same token between restarts.\n{banner}\n", flush=True)
 
 FALLBACK_REASON = "Automatic moderation is unavailable right now. The comment is waiting for a human moderator."
 OVERRIDE_NOTE = " [Human Moderator Override]"
@@ -196,9 +205,59 @@ async def get_comments():
               for r in _fetch_comments("WHERE status = 'APPROVED'")]
     return JSONResponse({"public": public})
 
+SORT_ORDERS = {
+    "newest": "id DESC",
+    "oldest": "id ASC",
+    "toxic": "toxicity_score DESC, id DESC",
+}
+
+
+def _unicode_lower(value):
+    # SQLite's LOWER() and LIKE only fold ASCII; this also handles Cyrillic.
+    return value.lower() if isinstance(value, str) else value
+
+
 @app.get("/api/admin/comments", dependencies=[Depends(require_admin)])
-async def get_audit_log():
-    return JSONResponse({"audit_log": _fetch_comments()})
+async def get_audit_log(
+    status: Optional[Literal["APPROVED", "REJECTED", "NEEDS_REVIEW"]] = None,
+    category: Optional[str] = Query(default=None, max_length=50),
+    min_toxicity: int = Query(default=0, ge=0, le=100),
+    q: Optional[str] = Query(default=None, max_length=200),
+    sort: Literal["newest", "oldest", "toxic"] = "newest",
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+):
+    """Moderator view: every comment, filtered, sorted and paged on the server."""
+    # Filters other than status; status counts are computed under these, so each status chip
+    # in the UI can show how many comments it would list.
+    where, params = ["toxicity_score >= ?"], [min_toxicity]
+    if category:
+        where.append("category = ?")
+        params.append(category)
+    if q and q.strip():
+        where.append("instr(ulower(author || ' ' || content), ?) > 0")  # literal match, no LIKE wildcards
+        params.append(q.strip().lower())
+
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    conn.create_function("ulower", 1, _unicode_lower, deterministic=True)
+    base = " AND ".join(where)
+    counts = {r["status"]: r["n"] for r in conn.execute(
+        f"SELECT status, COUNT(*) AS n FROM comments WHERE {base} GROUP BY status", params)}
+    status_counts = {"ALL": sum(counts.values())}
+    status_counts.update({k: counts.get(k, 0) for k in ("APPROVED", "REJECTED", "NEEDS_REVIEW")})
+
+    if status:
+        base += " AND status = ?"
+        params = params + [status]
+    total = conn.execute(f"SELECT COUNT(*) FROM comments WHERE {base}", params).fetchone()[0]
+    rows = [dict(r) for r in conn.execute(
+        f"SELECT * FROM comments WHERE {base} ORDER BY {SORT_ORDERS[sort]} LIMIT ? OFFSET ?",
+        params + [limit, offset])]
+    categories = [r[0] for r in conn.execute("SELECT DISTINCT category FROM comments ORDER BY category")]
+    conn.close()
+    return JSONResponse({"audit_log": rows, "total": total, "status_counts": status_counts,
+                         "categories": categories})
 
 @app.post("/api/comments")
 async def post_comment(payload: CommentSubmission, request: Request):
@@ -241,3 +300,14 @@ async def manual_override(action: ModerationAction):
     conn.commit()
     conn.close()
     return JSONResponse({"status": "updated"})
+
+@app.delete("/api/admin/comments/{comment_id}", dependencies=[Depends(require_admin)])
+async def delete_comment(comment_id: int):
+    """Permanently remove a comment, e.g. one that contains someone's personal data."""
+    conn = sqlite3.connect(DB_PATH)
+    deleted = conn.execute("DELETE FROM comments WHERE id = ?", (comment_id,)).rowcount
+    conn.commit()
+    conn.close()
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Comment not found.")
+    return JSONResponse({"status": "deleted"})

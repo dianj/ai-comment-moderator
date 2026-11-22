@@ -22,6 +22,7 @@ RATE_LIMIT = 5
 
 _TMP_DIR = tempfile.mkdtemp(prefix="moderator-tests-")
 _FAKE = FakeLMStudio().start()
+os.environ["MODERATOR_SKIP_DOTENV"] = "1"
 os.environ["MODERATION_DB"] = os.path.join(_TMP_DIR, "test_moderation.db")
 os.environ["LMSTUDIO_URL"] = _FAKE.base_url
 os.environ["ADMIN_TOKEN"] = ADMIN_TOKEN

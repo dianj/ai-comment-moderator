@@ -101,3 +101,21 @@ def test_malformed_model_output_queues_for_review(client, fake_lm):
 def test_admin_token_is_not_in_the_page(client):
     assert ADMIN_TOKEN not in client.get("/").text
 
+
+# --- deleting comments ----------------------------------------------------------------------
+
+def test_delete_needs_token(client):
+    assert client.delete("/api/admin/comments/1").status_code == 401
+    assert any(c["id"] == 1 for c in client.get("/api/comments").json()["public"])
+
+
+def test_delete_removes_the_comment_everywhere(client, admin_headers):
+    r = client.delete("/api/admin/comments/1", headers=admin_headers)
+    assert r.status_code == 200
+    assert all(c["id"] != 1 for c in client.get("/api/comments").json()["public"])
+    log = client.get("/api/admin/comments", headers=admin_headers).json()["audit_log"]
+    assert all(c["id"] != 1 for c in log)
+
+
+def test_delete_unknown_comment_is_404(client, admin_headers):
+    assert client.delete("/api/admin/comments/9999", headers=admin_headers).status_code == 404
