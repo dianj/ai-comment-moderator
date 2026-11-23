@@ -4,7 +4,7 @@
 
 A moderation pipeline for a blog's comment section, in English and Bulgarian. Every comment is checked before it is published: clean comments go live, harmful ones are blocked with a reason, and unclear ones wait for a human moderator, who can review, override or delete them and see the full history of every decision.
 
-The LLM (Gemma 4 26B, local in LM Studio) only **classifies**. Deterministic detectors handle the clear cases without it, and a policy layer in code makes the final **decision**, overrules contradictory model answers and records which rule decided.
+The LLM (Gemma 4 26B, local in LM Studio) only **classifies**. Deterministic detectors handle the clear cases without it, and a policy layer in code makes the final **decision**, overrules contradictory model answers and records which rule decided. A **calibrated decision gate** checks every automatic publish or reject: it measures how sure the model is, and below the threshold the comment goes to a person ([how it works and what it measured](docs/DECISIONS.md)).
 
 ![The public page: a threat is blocked with a reason, while approved comments in English and Bulgarian are published](docs/screenshots/01-public-blocked.png)
 
@@ -33,6 +33,7 @@ The LLM (Gemma 4 26B, local in LM Studio) only **classifies**. Deterministic det
 | **Prompt injection** | Author and text are passed as data inside delimiters that the comment cannot close; a strict JSON schema; the policy layer. Tested with 8 attacks, in English and Bulgarian. |
 | **Moderator panel** | Behind an admin token. Review queue with counts, search, category, toxicity, sort, server-side paging; approve, block, delete; per-comment history from an append-only audit log |
 | **Audit** | Every decision stores who made it (detector, AI, fallback, moderator), the rule, the model, the prompt version, the latency and the raw model answer |
+| **Decision gate** | A second, one-letter answer (publish / block / review) read as probabilities from the model's log-probabilities and calibrated per model; an automatic decision stands only if the gate agrees with p ≥ 0.95 (publish) or 0.85 (block), otherwise review. Gemma: 101/101 on the labelled set, ECE 0.006; +0.33 s |
 | **Safety** | Fails closed (no verdict → review, never publish) · XSS-safe rendering · blocked comments never reach the public API · length limits and per-IP rate limit |
 | **UI** | English, with a Bulgarian switch · a [status box](docs/screenshots/02-processing.png) with elapsed time while the model works |
 
@@ -45,6 +46,9 @@ Measured with `evals/run_evals.py` on 76 hand-labelled comments: clean comments,
 | First prototype: the model decides everything (66 cases then) | 65/66 | 1 | 0 | 12 s / 51 s |
 | **Current pipeline, reasoning off** (the default), 3 runs | **228/228** | **0** | **0** | **1.7 s / 2.0 s** |
 | Current pipeline, the model's default reasoning, 1 run | 76/76 | 0 | 0 | 12.4 s / 24.0 s |
+| Current pipeline **with the decision gate**, 1 run | 75/76 | **0** | **0** | 3.7 s / 4.3 s ¹ |
+
+¹ Measured on a busier machine than the rows above; back to back on the same machine the gate adds 0.33 s (p50 3.06 s → 3.39 s). The gate sent 3 comments to review where it disagreed with the main call; the one miss is an indirect arson call that the main call rejected and the gate wanted a person to see ([report](evals/results/gate-on.md)).
 
 Detectors decide 9% of the cases without an LLM call. No answer failed the schema in any run.
 
@@ -67,7 +71,8 @@ Per-case results: [`evals/results/latest.md`](evals/results/latest.md) and [`eva
 3. **Structured output, validated twice.** The model must answer with a strict JSON schema (enums for decision and category); Pydantic validates it again. Prose, an unknown category or a toxicity of 150 count as no answer.
 4. **Fail closed.** If the model is down, slow or answers invalidly, the comment waits for a human. Nothing is published without a verdict, and no error details reach the visitor.
 5. **Measured, not assumed.** Problems found by hand (a "Testing testing" post published as clean) became eval cases first, failed, and were fixed and re-measured with the whole set. Reasoning effort was chosen from the same measurements.
-6. **An audit log that cannot be rewritten.** Overrides and deletions are new events; nothing is updated in place, so the log answers "who decided this, when, and with which prompt".
+6. **A measured probability before every automatic action.** The model's own confidence is not a number to trust; the gate's probability comes from log-probabilities and a calibration on labelled comments, and a decision only goes through without a person when it is high enough. The gate can only send to review (two keys: policy and gate).
+7. **An audit log that cannot be rewritten.** Overrides and deletions are new events; nothing is updated in place, so the log answers "who decided this, when, and with which prompt".
 
 ## Quick start
 
@@ -116,11 +121,13 @@ python evals/run_evals.py --only pii,injection-03                        # a gro
 | `moderator/prompts.py` | System prompt with a version, JSON schema, safe user message |
 | `moderator/llm.py` | Async client, structured output, validation |
 | `moderator/policy.py` | Decision rules |
-| `moderator/pipeline.py` | Detectors → LLM → policy |
+| `moderator/pipeline.py` | Detectors → LLM and decision gate (in parallel) → policy |
+| `moderator/decisions.py` | The gate's question, thresholds and its rule in the policy |
+| `moderator/decide/` | Decision gates: log-probabilities → calibrated probability → act / confirm / escalate; calibration CLI, metrics |
 | `moderator/db.py` | SQLite: comments and the append-only audit log, admin queries |
 | `moderator/api.py` | FastAPI routes, admin token, rate limit |
 | `index.html` | The UI: public page and moderator panel |
-| `evals/` | Labelled dataset, runner, results |
+| `evals/` | Labelled dataset, runner, results; `evals/decisions/` the gate's labelled set, raw answers and calibrations |
 
 Design details, the policy table and the security model are in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 

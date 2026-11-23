@@ -106,8 +106,16 @@ as "Hate Speech", and it spent its longest reasoning on exactly those comments.
 | (detector) personal data | `REJECTED` | `pii-detector` |
 | (detector) content-free text | `NEEDS_REVIEW` | `empty-text` |
 | (no valid answer) | `NEEDS_REVIEW` | `llm-unavailable` |
+| automatic `APPROVED`/`REJECTED`, gate gives another outcome | `NEEDS_REVIEW` | `gate-disagrees` |
+| … gate agrees, p in the confirm band | `NEEDS_REVIEW` | `gate-unsure` |
+| … gate agrees, p below the confirm band | `NEEDS_REVIEW` | `gate-uncertain` |
+| … gate has no usable answer | `NEEDS_REVIEW` | `gate-unknown` |
 
-Every rule has a test in `tests/test_pipeline.py`, including the contradictory model answers.
+The gate rows apply after the others and only to automatic decisions ([DECISIONS.md](DECISIONS.md)); with
+`DECISION_GATE=0` they are skipped.
+
+Every rule has a test in `tests/test_pipeline.py` (the gate rules in `tests/test_gate.py`), including the
+contradictory model answers.
 
 ## Audit log
 
