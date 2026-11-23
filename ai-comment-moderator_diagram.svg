@@ -1,162 +1,199 @@
-<svg style="background: #000;" class="dark " xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1371.41 767.2" width="1371.41" height="767.2" id="m6fc6e2__root" data-diagram-type="sequence">
-  <style data-mercat-style="universal">.mercat text{font-family:'Google Sans',Roboto,Arial,sans-serif;fill:var(--m-text);dominant-baseline:central}.mercat .m-node .m-shape{fill:var(--m-node-fill);stroke:var(--m-node-stroke);stroke-width:1.5px}.mercat .m-edge .m-path{fill:none;stroke:var(--m-line);stroke-width:1.5px}.mercat .m-edge--dashed .m-path,.mercat .m-edge--dashed{stroke-dasharray:5 4}.mercat .m-edge-label .m-shape{fill:var(--m-pill-bg);stroke:var(--m-pill-border);stroke-width:1px}.mercat .m-edge-label .m-label{fill:var(--m-text-sec)}.mercat .m-group .m-shape{fill:var(--m-group-fill);stroke:var(--m-group-stroke);stroke-width:1px}.mercat .m-group .m-frame{fill:none;stroke:var(--m-group-stroke);stroke-width:1px}.mercat .m-group .m-label{fill:var(--m-group-text)}.mercat .t-label{font-size:13px;font-weight:500}.mercat .t-edge{font-size:11px;font-weight:400}</style>
-  <style data-mercat-style="theme-light">#m6fc6e2__root{--m-text:#1f1f1f;--m-text-sec:#797979;--m-line:#545454;--m-node-fill:#f8f9fa;--m-node-stroke:#747775;--m-group-fill:#f8f9fa;--m-group-stroke:#747775;--m-group-hdr:#f4f4f4;--m-group-text:#1f1f1f;--m-pill-bg:#fbfbfb;--m-pill-border:#d7d7d7}</style>
-  <style data-mercat-style="theme-dark">#m6fc6e2__root.dark{--m-text:#e3e3e3;--m-text-sec:#959595;--m-line:#bfbfbf;--m-node-fill:#2d2e30;--m-node-stroke:#8e918f;--m-group-fill:#2d2e30;--m-group-stroke:#8e918f;--m-group-hdr:#292929;--m-group-text:#e3e3e3;--m-pill-bg:#232323;--m-pill-border:#424242}</style>
-  <style data-mercat-style="type">#m6fc6e2__root .seq-actor-icon-bg{fill:none;stroke:var(--m-line);stroke-width:1.5px}#m6fc6e2__root .seq-actor-icon-line{fill:none;stroke:var(--m-line);stroke-width:1.5px}#m6fc6e2__root .seq-lifeline&gt;.m-path{fill:none;stroke:var(--m-line);stroke-width:0.75px;stroke-dasharray:6 4}#m6fc6e2__root .seq-block-box{fill:none;stroke:var(--m-node-stroke);stroke-width:1.5px}#m6fc6e2__root .seq-block-badge&gt;.m-shape{fill:var(--m-group-hdr);stroke:var(--m-node-stroke);stroke-width:1.5px}#m6fc6e2__root .seq-block-badge&gt;.m-label{fill:var(--m-text)}#m6fc6e2__root .seq-block-guard&gt;.m-label{fill:var(--m-text)}#m6fc6e2__root .seq-block-divider{fill:none;stroke:var(--m-node-stroke);stroke-width:0.85px;stroke-dasharray:5 3}</style>
-  <g class="mercat mercat-sequence" transform="translate(14, 0)">
-    <defs>
-      <marker id="m6fc6e2__mk-arrow" refX="9.45" refY="3.4" markerWidth="10.8" markerHeight="6.8" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
-        <path d="M 0 0 L 10.8 3.4 L 0 6.8 Z" class="m-marker" fill="var(--m-line)" stroke="none"/>
-      </marker>
-    </defs>
-    <g class="seq-lifeline">
-      <line x1="70" y1="92.45" x2="70" y2="674.75" class="m-path"/>
-    </g>
-    <g class="seq-lifeline">
-      <line x1="339.31" y1="70" x2="339.31" y2="674.75" class="m-path"/>
-    </g>
-    <g class="seq-lifeline">
-      <line x1="650.09" y1="70" x2="650.09" y2="674.75" class="m-path"/>
-    </g>
-    <g class="seq-lifeline">
-      <line x1="935.67" y1="70" x2="935.67" y2="674.75" class="m-path"/>
-    </g>
-    <g class="seq-lifeline">
-      <line x1="1229.28" y1="92.45" x2="1229.28" y2="674.75" class="m-path"/>
-    </g>
-    <g class="m-group seq-block" id="m6fc6e2__group__alt_5f0" data-role="group">
-      <rect x="16" y="347.65" width="1263.28" height="307.1" rx="2" ry="2" class="m-frame seq-block-box"/>
-      <g class="seq-block-badge">
-        <polygon points="16,347.65 58,347.65 58,362.15 52.5,367.65 16,367.65" class="m-shape"/>
-        <text x="36.04" y="357.65" class="m-label t-edge" text-anchor="middle">alt</text>
-      </g>
-      <g class="seq-block-guard">
-        <text x="82" y="357.65" class="m-label t-edge" text-anchor="start">status == APPROVED</text>
-      </g>
-      <line x1="16" y1="420.95" x2="1279.28" y2="420.95" class="m-path seq-block-divider"/>
-      <g class="seq-block-badge">
-        <polygon points="16,420.95 58,420.95 58,435.45 52.5,440.95 16,440.95" class="m-shape"/>
-        <text x="36.04" y="430.95" class="m-label t-edge" text-anchor="middle">else</text>
-      </g>
-      <g class="seq-block-guard">
-        <text x="82" y="430.95" class="m-label t-edge" text-anchor="start">status == REJECTED</text>
-      </g>
-      <line x1="16" y1="494.55" x2="1279.28" y2="494.55" class="m-path seq-block-divider"/>
-      <g class="seq-block-badge">
-        <polygon points="16,494.55 58,494.55 58,509.05 52.5,514.55 16,514.55" class="m-shape"/>
-        <text x="36.04" y="504.55" class="m-label t-edge" text-anchor="middle">else</text>
-      </g>
-      <g class="seq-block-guard">
-        <text x="82" y="504.55" class="m-label t-edge" text-anchor="start">status == NEEDS_REVIEW</text>
-      </g>
-    </g>
-    <g class="m-node m-edge" id="m6fc6e2__edge__User__API__0" data-role="connector">
-      <path d="M 70 131.75 L 339.31 131.75" class="m-path" marker-end="url(#m6fc6e2__mk-arrow)"/>
-      <g class="m-edge-label">
-        <text x="204.65" y="119.6" class="m-label t-edge" text-anchor="middle">POST /api/comments (Author + Comment)</text>
-      </g>
-    </g>
-    <g class="m-node m-edge" id="m6fc6e2__edge__API__API__0" data-role="connector">
-      <path d="M 339.31 155.75 L 363.31 155.75 A 6 6 0 0 1 369.31 161.75 L 369.31 179.75 A 6 6 0 0 1 363.31 185.75 L 339.31 185.75" class="m-path" marker-end="url(#m6fc6e2__mk-arrow)"/>
-      <g class="m-edge-label">
-        <text x="377.31" y="170.75" class="m-label t-edge" text-anchor="start">Isolate input in &lt;user_comment&gt; (Anti-Injection)</text>
-      </g>
-    </g>
-    <g class="m-node m-edge" id="m6fc6e2__edge__API__LLM__0" data-role="connector">
-      <path d="M 339.31 229.05 L 650.09 229.05" class="m-path" marker-end="url(#m6fc6e2__mk-arrow)"/>
-      <g class="m-edge-label">
-        <text x="494.7" y="216.9" class="m-label t-edge" text-anchor="middle">Analyze for toxicity, spam, and PII</text>
-      </g>
-    </g>
-    <g class="m-node m-edge m-edge--dashed" id="m6fc6e2__edge__LLM__API__0" data-role="connector">
-      <path d="M 650.09 272.35 L 339.31 272.35" class="m-path" marker-end="url(#m6fc6e2__mk-arrow)"/>
-      <g class="m-edge-label">
-        <text x="494.7" y="260.2" class="m-label t-edge" text-anchor="middle">JSON {status, toxicity_score, category, reason}</text>
-      </g>
-    </g>
-    <g class="m-node m-edge" id="m6fc6e2__edge__API__DB__0" data-role="connector">
-      <path d="M 339.31 315.65 L 935.67 315.65" class="m-path" marker-end="url(#m6fc6e2__mk-arrow)"/>
-      <g class="m-edge-label">
-        <text x="494.7" y="303.5" class="m-label t-edge" text-anchor="middle">Store comment and AI evaluation</text>
-      </g>
-    </g>
-    <g class="m-node m-edge m-edge--dashed" id="m6fc6e2__edge__API__User__0" data-role="connector">
-      <path d="M 339.31 400.95 L 70 400.95" class="m-path" marker-end="url(#m6fc6e2__mk-arrow)"/>
-      <g class="m-edge-label">
-        <text x="204.65" y="388.8" class="m-label t-edge" text-anchor="middle">Published immediately on page</text>
-      </g>
-    </g>
-    <g class="m-node m-edge m-edge--dashed" id="m6fc6e2__edge__API__User__1" data-role="connector">
-      <path d="M 339.31 474.55 L 70 474.55" class="m-path" marker-end="url(#m6fc6e2__mk-arrow)"/>
-      <g class="m-edge-label">
-        <text x="204.65" y="462.4" class="m-label t-edge" text-anchor="middle">Blocked + Polite rejection reason</text>
-      </g>
-    </g>
-    <g class="m-node m-edge m-edge--dashed" id="m6fc6e2__edge__API__User__2" data-role="connector">
-      <path d="M 339.31 548.15 L 70 548.15" class="m-path" marker-end="url(#m6fc6e2__mk-arrow)"/>
-      <g class="m-edge-label">
-        <text x="204.65" y="536" class="m-label t-edge" text-anchor="middle">Queued for human review</text>
-      </g>
-    </g>
-    <g class="m-node m-edge" id="m6fc6e2__edge__Admin__API__0" data-role="connector">
-      <path d="M 1229.28 591.45 L 339.31 591.45" class="m-path" marker-end="url(#m6fc6e2__mk-arrow)"/>
-      <g class="m-edge-label">
-        <text x="1082.47" y="579.3" class="m-label t-edge" text-anchor="middle">POST /api/admin/override (Approve / Reject)</text>
-      </g>
-    </g>
-    <g class="m-node m-edge" id="m6fc6e2__edge__API__DB__1" data-role="connector">
-      <path d="M 339.31 634.75 L 935.67 634.75" class="m-path" marker-end="url(#m6fc6e2__mk-arrow)"/>
-      <g class="m-edge-label">
-        <text x="494.7" y="622.6" class="m-label t-edge" text-anchor="middle">Update moderation status</text>
-      </g>
-    </g>
-    <g class="m-node m-node--actor seq-actor" id="m6fc6e2__node__User" data-role="actor">
-      <circle cx="70" cy="50" r="13.5" class="m-shape seq-actor-icon-bg"/>
-      <circle cx="70" cy="47" r="4.5" class="m-path seq-actor-icon-line"/>
-      <path d="M 60.44 59.53 C 62.63 57.56, 66.1 56, 70 56 C 73.9 56, 77.37 57.56, 79.56 59.53" class="m-path seq-actor-icon-line"/>
-      <text x="70" y="84" class="m-label t-label" text-anchor="middle">User</text>
-    </g>
-    <g class="m-node m-node--round-rect seq-actor" id="m6fc6e2__node__API" data-role="actor">
-      <rect x="266.51" y="30" width="145.6" height="40" rx="4" ry="4" class="m-shape"/>
-      <text x="339.31" y="50" class="m-label t-label" text-anchor="middle">FastAPI Server</text>
-    </g>
-    <g class="m-node m-node--round-rect seq-actor" id="m6fc6e2__node__LLM" data-role="actor">
-      <rect x="522.66" y="30" width="254.86" height="40" rx="4" ry="4" class="m-shape"/>
-      <text x="650.09" y="50" class="m-label t-label" text-anchor="middle">Gemma 4-26B (Guardrail JSON)</text>
-    </g>
-    <g class="m-node m-node--round-rect seq-actor" id="m6fc6e2__node__DB" data-role="actor">
-      <rect x="817.52" y="30" width="236.3" height="40" rx="4" ry="4" class="m-shape"/>
-      <text x="935.67" y="50" class="m-label t-label" text-anchor="middle">SQLite (Comments Audit Log)</text>
-    </g>
-    <g class="m-node m-node--actor seq-actor" id="m6fc6e2__node__Admin" data-role="actor">
-      <circle cx="1229.28" cy="50" r="13.5" class="m-shape seq-actor-icon-bg"/>
-      <circle cx="1229.28" cy="47" r="4.5" class="m-path seq-actor-icon-line"/>
-      <path d="M 1219.73 59.53 C 1221.92 57.56, 1225.38 56, 1229.28 56 C 1233.18 56, 1236.65 57.56, 1238.84 59.53" class="m-path seq-actor-icon-line"/>
-      <text x="1229.28" y="84" class="m-label t-label" text-anchor="middle">Moderator (Admin Tab)</text>
-    </g>
-    <g class="m-node m-node--actor seq-actor">
-      <circle cx="70" cy="694.75" r="13.5" class="m-shape seq-actor-icon-bg"/>
-      <circle cx="70" cy="691.75" r="4.5" class="m-path seq-actor-icon-line"/>
-      <path d="M 60.44 704.28 C 62.63 702.31, 66.1 700.75, 70 700.75 C 73.9 700.75, 77.37 702.31, 79.56 704.28" class="m-path seq-actor-icon-line"/>
-      <text x="70" y="728.75" class="m-label t-label" text-anchor="middle">User</text>
-    </g>
-    <g class="m-node m-node--round-rect seq-actor">
-      <rect x="266.51" y="674.75" width="145.6" height="40" rx="4" ry="4" class="m-shape"/>
-      <text x="339.31" y="694.75" class="m-label t-label" text-anchor="middle">FastAPI Server</text>
-    </g>
-    <g class="m-node m-node--round-rect seq-actor">
-      <rect x="522.66" y="674.75" width="254.86" height="40" rx="4" ry="4" class="m-shape"/>
-      <text x="650.09" y="694.75" class="m-label t-label" text-anchor="middle">Gemma 4-26B (Guardrail JSON)</text>
-    </g>
-    <g class="m-node m-node--round-rect seq-actor">
-      <rect x="817.52" y="674.75" width="236.3" height="40" rx="4" ry="4" class="m-shape"/>
-      <text x="935.67" y="694.75" class="m-label t-label" text-anchor="middle">SQLite (Comments Audit Log)</text>
-    </g>
-    <g class="m-node m-node--actor seq-actor">
-      <circle cx="1229.28" cy="694.75" r="13.5" class="m-shape seq-actor-icon-bg"/>
-      <circle cx="1229.28" cy="691.75" r="4.5" class="m-path seq-actor-icon-line"/>
-      <path d="M 1219.73 704.28 C 1221.92 702.31, 1225.38 700.75, 1229.28 700.75 C 1233.18 700.75, 1236.65 702.31, 1238.84 704.28" class="m-path seq-actor-icon-line"/>
-      <text x="1229.28" y="728.75" class="m-label t-label" text-anchor="middle">Moderator (Admin Tab)</text>
-    </g>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 1150" width="1440" height="1150" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <title>AI Comment Moderator: architecture and the path of one comment</title>
+  <desc>The browser posts a comment to a FastAPI server. A pipeline checks input limits, runs deterministic detectors for personal data, asks a local LM Studio model for a JSON-schema verdict only when needed, and a policy layer turns the result into the final decision. Comments and an append-only audit log are stored in SQLite; moderators filter, review, override and delete in an admin panel.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+    <style>
+      .title { font-size: 22px; font-weight: 700; fill: #0f172a; }
+      .subtitle { font-size: 13px; fill: #475569; }
+      .h { font-size: 14px; font-weight: 700; fill: #0f172a; }
+      .sh { font-size: 12.5px; font-weight: 700; fill: #1e293b; }
+      .t { font-size: 11.5px; fill: #334155; }
+      .m { font-size: 11px; fill: #1e293b; font-family: Consolas, 'Cascadia Mono', Menlo, monospace; }
+      .n { font-size: 11px; font-weight: 700; fill: #ffffff; text-anchor: middle; dominant-baseline: central; }
+      .lbl { font-size: 10.5px; fill: #334155; text-anchor: middle; }
+      .call { stroke: #334155; stroke-width: 1.6; fill: none; }
+      .resp { stroke: #334155; stroke-width: 1.6; fill: none; stroke-dasharray: 6 4; }
+      .sub { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1; }
+      .stage { fill: #f8fafc; stroke: #94a3b8; stroke-width: 1; }
+      .lock { font-size: 10.5px; fill: #7c3aed; font-weight: 700; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1440" height="1150" fill="#ffffff"/>
+
+  <!-- Title -->
+  <text x="24" y="40" class="title">AI Comment Moderator: Architecture</text>
+  <text x="24" y="64" class="subtitle">The model classifies, the code decides. Clear cases never reach the LLM; every decision names its rule and is written to an append-only audit log. Everything runs locally.</text>
+
+  <!-- ===================== BROWSER ===================== -->
+  <rect x="24" y="84" width="340" height="760" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="40" y="108" class="h">Browser · index.html (vanilla JS)</text>
+
+  <rect x="40" y="124" width="308" height="330" rx="6" class="sub"/>
+  <text x="54" y="146" class="sh">Public page</text>
+  <text x="54" y="170" class="t">• Demo article + comment form</text>
+  <text x="54" y="192" class="t">• While the model works: status box with</text>
+  <text x="54" y="210" class="t">   spinner, elapsed seconds and waiting</text>
+  <text x="54" y="228" class="t">   messages after 10 / 20 / 30 s</text>
+  <text x="54" y="250" class="t">• Result banner: published / blocked with</text>
+  <text x="54" y="268" class="t">   category and reason / sent for review</text>
+  <text x="54" y="290" class="t">• Public feed: approved comments only</text>
+  <text x="54" y="312" class="t">• English UI, Bulgarian switch (EN / BG)</text>
+  <text x="54" y="334" class="t">• All user and model text rendered as</text>
+  <text x="54" y="352" class="t">   text (escaped), never as HTML</text>
+
+  <rect x="40" y="470" width="308" height="358" rx="6" class="sub"/>
+  <text x="54" y="492" class="sh">Moderator panel</text>
+  <text x="250" y="492" class="lock">X-Admin-Token</text>
+  <text x="54" y="516" class="t">• Status chips with counts:</text>
+  <text x="54" y="534" class="t">   All · Needs review · Rejected · Approved</text>
+  <text x="54" y="556" class="t">• Search author / text, category,</text>
+  <text x="54" y="574" class="t">   minimum toxicity, sort, "Load more"</text>
+  <text x="54" y="592" class="t">   (filtered and paged on the server)</text>
+  <text x="54" y="614" class="t">• Who decided: Rule · AI · Fallback,</text>
+  <text x="54" y="632" class="t">   "Reviewed by moderator" badge</text>
+  <text x="54" y="654" class="t">• History: every event of a comment</text>
+  <text x="54" y="672" class="t">   (rule, model, prompt version, latency)</text>
+  <text x="54" y="694" class="t">• Approve · Block · Delete (with confirm)</text>
+  <text x="54" y="716" class="t">• Token from .env (ADMIN_TOKEN) or printed</text>
+  <text x="54" y="734" class="t">   in the console at start-up</text>
+
+  <!-- ===================== FASTAPI ===================== -->
+  <rect x="404" y="84" width="600" height="760" rx="10" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="420" y="108" class="h">FastAPI · moderator/ package (uvicorn, port 8000)</text>
+
+  <rect x="420" y="124" width="568" height="168" rx="6" class="sub"/>
+  <text x="434" y="146" class="sh">HTTP endpoints (api.py)</text>
+  <text x="434" y="170" class="m">GET</text><text x="490" y="170" class="m">/</text>                                <text x="720" y="170" class="t">page</text>
+  <text x="434" y="188" class="m">POST</text><text x="490" y="188" class="m">/api/comments</text>                    <text x="720" y="188" class="t">submit a comment → verdict</text>
+  <text x="434" y="206" class="m">GET</text><text x="490" y="206" class="m">/api/comments</text>                    <text x="720" y="206" class="t">public feed (approved only)</text>
+  <text x="434" y="224" class="m">GET</text><text x="490" y="224" class="m">/api/admin/comments</text>              <text x="720" y="224" class="t">filters, sort, paging</text>
+  <text x="434" y="242" class="m">GET</text><text x="490" y="242" class="m">/api/admin/comments/{id}/events</text>  <text x="720" y="242" class="t">audit trail</text>
+  <text x="434" y="260" class="m">POST</text><text x="490" y="260" class="m">/api/moderate</text>                    <text x="720" y="260" class="t">human override</text>
+  <text x="434" y="278" class="m">DELETE</text><text x="490" y="278" class="m">/api/admin/comments/{id}</text>         <text x="720" y="278" class="t">delete</text>
+  <text x="930" y="224" class="lock">token</text>
+  <text x="930" y="242" class="lock">token</text>
+  <text x="930" y="260" class="lock">token</text>
+  <text x="930" y="278" class="lock">token</text>
+
+  <rect x="420" y="308" width="568" height="520" rx="6" class="sub"/>
+  <text x="434" y="330" class="sh">Moderation pipeline (pipeline.py)</text>
+
+  <rect x="436" y="344" width="536" height="62" rx="5" class="stage"/>
+  <text x="450" y="364" class="sh">1 · Input guard (api.py)</text>
+  <text x="450" y="384" class="t">Comment ≤ 2000 chars, name ≤ 80 → otherwise 422 · 10 comments per minute per IP → 429</text>
+  <text x="450" y="400" class="t">Empty text → 400</text>
+
+  <rect x="436" y="416" width="536" height="96" rx="5" class="stage"/>
+  <text x="450" y="436" class="sh">2 · Detectors (detectors.py) · deterministic, no LLM</text>
+  <text x="450" y="456" class="t">EGN (valid date + checksum) · IBAN (mod 97) · phone (Bulgarian and +CC) · email · links</text>
+  <text x="450" y="474" class="t">Punctuation only or one repeated character ("....", "аааааа")</text>
+  <text x="450" y="494" class="t">Clear case decided here in ~0 ms: personal data → REJECTED (PII), empty → NEEDS_REVIEW</text>
+
+  <rect x="436" y="522" width="536" height="96" rx="5" class="stage"/>
+  <text x="450" y="542" class="sh">3 · LLM classifier (llm.py, prompts.py)</text>
+  <text x="450" y="562" class="t">Author + text inside &lt;user_comment&gt; as untrusted data; tags in the text are neutralised</text>
+  <text x="450" y="580" class="t">JSON schema: decision · 1 of 10 categories · toxicity 0–100 · reason in the comment's language</text>
+  <text x="450" y="598" class="t">Async client, timeout, reasoning_effort "none" · invalid or missing answer → fallback</text>
+
+  <rect x="436" y="628" width="536" height="110" rx="5" class="stage"/>
+  <text x="450" y="648" class="sh">4 · Policy (policy.py) · the code decides, and records which rule did</text>
+  <text x="450" y="668" class="t">Threat · Hate Speech · Spam · PII · Prompt Injection → REJECTED, whatever the model said</text>
+  <text x="450" y="686" class="t">Profanity · Harassment → REJECTED or NEEDS_REVIEW, never published automatically</text>
+  <text x="450" y="704" class="t">Borderline · Low Quality → NEEDS_REVIEW · "Clean" but toxicity ≥ 40 → NEEDS_REVIEW</text>
+  <text x="450" y="722" class="t">LLM unavailable → NEEDS_REVIEW (fail closed: nothing is published without a verdict)</text>
+
+  <rect x="436" y="748" width="536" height="66" rx="5" class="stage"/>
+  <text x="450" y="768" class="sh">5 · Store (db.py)</text>
+  <text x="450" y="788" class="t">Comment + a "created" event: decided by, rule, model, prompt version, latency, raw answer</text>
+  <text x="450" y="804" class="t">Overrides and deletes are appended as events; nothing in the log is updated in place</text>
+
+  <!-- ===================== RIGHT COLUMN ===================== -->
+  <!-- Legend -->
+  <rect x="1044" y="84" width="372" height="150" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="1060" y="108" class="h">Legend</text>
+  <line x1="1060" y1="132" x2="1140" y2="132" class="call" marker-end="url(#arrow)"/>
+  <text x="1152" y="136" class="t">request / call</text>
+  <line x1="1060" y1="158" x2="1140" y2="158" class="resp" marker-end="url(#arrow)"/>
+  <text x="1152" y="162" class="t">response / result</text>
+  <circle cx="1090" cy="186" r="10" fill="#0f172a"/><text x="1090" y="186" class="n">1</text>
+  <text x="1152" y="190" class="t">step for one comment (list below)</text>
+  <text x="1060" y="220" class="t">Ports: app 8000 · LM Studio 1235 (both local)</text>
+
+  <!-- Offline evals -->
+  <rect x="1044" y="250" width="372" height="230" rx="10" fill="#f0fdfa" stroke="#14b8a6" stroke-width="1.5"/>
+  <text x="1060" y="274" class="h">Offline quality checks</text>
+  <text x="1060" y="298" class="sh">evals/run_evals.py · real model</text>
+  <text x="1060" y="318" class="t">76 hand-labelled comments (EN / BG / mixed):</text>
+  <text x="1060" y="336" class="t">clean, hard negatives, profanity, threats, hate,</text>
+  <text x="1060" y="354" class="t">spam, PII, prompt injection, obfuscation,</text>
+  <text x="1060" y="372" class="t">borderline, low quality</text>
+  <text x="1060" y="392" class="t">Leaked · over-blocked · category · latency</text>
+  <text x="1060" y="416" class="sh">tests/ · pytest + Playwright, no GPU</text>
+  <text x="1060" y="436" class="t">Scripted fake LM Studio; detectors, policy,</text>
+  <text x="1060" y="454" class="t">API, security (XSS, auth) and UI in a browser</text>
+
+  <!-- LM Studio -->
+  <rect x="1044" y="500" width="372" height="140" rx="10" fill="#faf5ff" stroke="#a855f7" stroke-width="1.5"/>
+  <text x="1060" y="524" class="h">LM Studio · localhost:1235 (local GPU)</text>
+  <text x="1060" y="548" class="t">OpenAI-compatible /v1/chat/completions</text>
+  <text x="1060" y="568" class="t">response_format: json_schema (strict)</text>
+  <text x="1060" y="592" class="sh">Model: Gemma 4 26B A4B (default)</text>
+  <text x="1060" y="612" class="t">Any OpenAI-compatible server works:</text>
+  <text x="1060" y="630" class="t">LMSTUDIO_URL / MODERATION_MODEL in .env</text>
+
+  <!-- SQLite -->
+  <rect x="1044" y="660" width="372" height="184" rx="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="1060" y="684" class="h">SQLite · moderation.db</text>
+  <text x="1060" y="708" class="sh">comments</text>
+  <text x="1060" y="728" class="t">author · content · status · category · toxicity</text>
+  <text x="1060" y="746" class="t">reason · decided_by · reviewed_by / reviewed_at</text>
+  <text x="1060" y="770" class="sh">moderation_events (append-only)</text>
+  <text x="1060" y="790" class="t">comment · time · actor (rule / ai / fallback / human)</text>
+  <text x="1060" y="808" class="t">action (created / override / deleted) · from → to</text>
+  <text x="1060" y="826" class="t">details JSON (model, prompt, rule, latency, raw)</text>
+
+  <!-- ===================== ARROWS ===================== -->
+  <!-- 1: browser posts the comment -->
+  <line x1="348" y1="190" x2="418" y2="190" class="call" marker-end="url(#arrow)"/>
+  <circle cx="384" cy="190" r="10" fill="#0f172a"/><text x="384" y="190" class="n">1</text>
+  <!-- 6: verdict back to the browser -->
+  <line x1="420" y1="236" x2="350" y2="236" class="resp" marker-end="url(#arrow)"/>
+  <circle cx="384" cy="236" r="10" fill="#0f172a"/><text x="384" y="236" class="n">6</text>
+  <!-- 2: into the pipeline (detectors) -->
+  <line x1="420" y1="464" x2="434" y2="464" class="call" marker-end="url(#arrow)"/>
+  <!-- 3 / 4: LLM call and verdict -->
+  <line x1="972" y1="556" x2="1042" y2="556" class="call" marker-end="url(#arrow)"/>
+  <circle cx="1022" cy="556" r="10" fill="#0f172a"/><text x="1022" y="556" class="n">3</text>
+  <line x1="1044" y1="596" x2="974" y2="596" class="resp" marker-end="url(#arrow)"/>
+  <circle cx="1022" cy="596" r="10" fill="#0f172a"/><text x="1022" y="596" class="n">4</text>
+  <!-- 5: store -->
+  <line x1="972" y1="781" x2="1042" y2="781" class="call" marker-end="url(#arrow)"/>
+  <circle cx="1022" cy="781" r="10" fill="#0f172a"/><text x="1022" y="781" class="n">5</text>
+  <!-- 7: moderator panel ↔ admin endpoints -->
+  <line x1="348" y1="600" x2="402" y2="600" class="call"/>
+  <line x1="402" y1="600" x2="402" y2="250" class="call"/>
+  <line x1="402" y1="250" x2="418" y2="250" class="call" marker-end="url(#arrow)"/>
+  <circle cx="378" cy="600" r="10" fill="#0f172a"/><text x="378" y="600" class="n">7</text>
+
+  <!-- ===================== STEPS ===================== -->
+  <rect x="24" y="868" width="1392" height="262" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="40" y="892" class="h">One comment, step by step (numbers match the arrows)</text>
+  <circle cx="50" cy="922" r="10" fill="#0f172a"/><text x="50" y="922" class="n">1</text>
+  <text x="72" y="926" class="t">The browser posts the author and text to POST /api/comments and shows the status box with a spinner and the elapsed seconds.</text>
+  <circle cx="50" cy="950" r="10" fill="#0f172a"/><text x="50" y="950" class="n">2</text>
+  <text x="72" y="954" class="t">The input guard checks length and rate; the detectors scan the author and text. A valid EGN, IBAN, phone or email, or text without content, is decided here and steps 3–4 are skipped.</text>
+  <circle cx="50" cy="978" r="10" fill="#0f172a"/><text x="50" y="978" class="n">3</text>
+  <text x="72" y="982" class="t">Otherwise the comment goes to the model in LM Studio inside &lt;user_comment&gt; tags, with the system prompt and a strict JSON schema for the verdict.</text>
+  <circle cx="50" cy="1006" r="10" fill="#0f172a"/><text x="50" y="1006" class="n">4</text>
+  <text x="72" y="1010" class="t">The verdict is validated (Pydantic). The policy applies its rules, can overrule a contradictory answer, and names the rule; an invalid answer or an outage sends the comment to review.</text>
+  <circle cx="50" cy="1034" r="10" fill="#0f172a"/><text x="50" y="1034" class="n">5</text>
+  <text x="72" y="1038" class="t">The comment and a "created" event (who decided, rule, model, prompt version, latency, raw answer) are saved in SQLite.</text>
+  <circle cx="50" cy="1062" r="10" fill="#0f172a"/><text x="50" y="1062" class="n">6</text>
+  <text x="72" y="1066" class="t">The browser gets status, category and reason: published comments appear in the public feed; blocked ones show the reason; reviewed ones wait for a moderator.</text>
+  <circle cx="50" cy="1090" r="10" fill="#0f172a"/><text x="50" y="1090" class="n">7</text>
+  <text x="72" y="1094" class="t">A moderator, with the admin token, filters the log, opens a comment's history, and approves, blocks or deletes it. Each action is appended to moderation_events.</text>
 </svg>
