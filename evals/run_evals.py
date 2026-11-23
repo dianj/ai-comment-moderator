@@ -46,7 +46,7 @@ def make_moderator(base_url, model, reasoning):
     os.environ.update(LMSTUDIO_URL=base_url, MODERATION_MODEL=model, LLM_REASONING_EFFORT=reasoning,
                       ADMIN_TOKEN="eval-run", MODERATOR_SKIP_DOTENV="1")
     sys.path.insert(0, str(ROOT))
-    from moderator import pipeline  # noqa: E402
+    from moderator import config, pipeline  # noqa: E402
     from moderator.prompts import PROMPT_VERSION  # noqa: E402
 
     def moderate(author, content):
@@ -55,9 +55,12 @@ def make_moderator(base_url, model, reasoning):
         return {"decision": d.status, "category": d.category, "toxicity_score": d.toxicity_score,
                 "reason": d.reason, "decided_by": d.decided_by, "rule": d.rule,
                 "model_decision": result.details.get("model_decision"),
-                "reasoning_tokens": result.details.get("reasoning_tokens")}
+                "reasoning_tokens": result.details.get("reasoning_tokens"),
+                "gate": {k: result.details["gate"][k] for k in ("chosen", "p", "action", "temperature")}
+                if "gate" in result.details else None}
 
-    meta = {"target": "moderator.pipeline.moderate (detectors + LLM + policy)",
+    target = "detectors + LLM + decision gate + policy" if config.DECISION_GATE else "detectors + LLM + policy"
+    meta = {"target": f"moderator.pipeline.moderate ({target})",
             "prompt_version": PROMPT_VERSION, "reasoning_effort": reasoning or "model default"}
     return meta, moderate
 
@@ -115,8 +118,10 @@ def report(meta, cases, records):
     leaked = sum(r["leaked"] for r in harmful)
     over_blocked = sum(r["over_blocked"] for r in acceptable)
     by_rules = sum(r["verdict"].get("decided_by") == "rule" for r in records)
+    gated = sum(str(r["verdict"].get("rule", "")).startswith("gate-") for r in records)
     overruled = sum(bool(r["verdict"].get("model_decision"))
-                    and r["verdict"]["model_decision"] != r["verdict"].get("decision") for r in records)
+                    and r["verdict"]["model_decision"] != r["verdict"].get("decision")
+                    and not str(r["verdict"].get("rule", "")).startswith("gate-") for r in records)
     reasoning = meta.get("reasoning_effort", "model default")
     prompt = f", prompt `{meta['prompt_version']}`" if meta.get("prompt_version") else ""
     latency = (f"{statistics.median(latencies):.1f}s / {p95:.1f}s" if latencies else "n/a")
@@ -140,6 +145,7 @@ def report(meta, cases, records):
         f"| LLM/parse fallbacks | {pct(sum(r['fallback'] for r in records), total)} |",
         f"| Decided by detectors (no LLM call) | {pct(by_rules, total)} |",
         f"| Policy overruled the model's decision | {pct(overruled, total)} |",
+        f"| Sent to review by the decision gate | {pct(gated, total)} |",
         f"| Latency p50 / p95 | {latency} |",
         "",
         "## By group",

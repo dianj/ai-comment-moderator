@@ -1,0 +1,20 @@
+{
+  "question_id": "moderator.outcome",
+  "model": "gemma-4-26b-a4b-it",
+  "prompt_hash": "76e9344633ab",
+  "temperature": 1.0,
+  "n_cases": 101,
+  "fitted_at": "2026-11-23T23:15:09.168509+00:00",
+  "metrics_before": {
+    "n": 101,
+    "accuracy": 1.0,
+    "ece": 0.0063,
+    "brier": 0.0004
+  },
+  "metrics_after": {
+    "n": 101,
+    "accuracy": 1.0,
+    "ece": 0.0063,
+    "brier": 0.0004
+  }
+}

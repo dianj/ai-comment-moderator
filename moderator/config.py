@@ -24,6 +24,11 @@ MODEL_NAME = os.environ.get("MODERATION_MODEL", "gemma-4-26b-a4b-it")
 REASONING_EFFORT = os.environ.get("LLM_REASONING_EFFORT", "none")
 LLM_TIMEOUT_S = float(os.environ.get("LLM_TIMEOUT_S", "120"))
 
+# Decision gate: a calibrated second opinion before anything is published or rejected automatically
+# (docs/DECISIONS.md). 0 = the policy decides from the main verdict alone, as before.
+DECISION_GATE = os.environ.get("DECISION_GATE", "1") == "1"
+CALIBRATION_DIR = ROOT / os.environ.get("CALIBRATION_DIR", "evals/decisions/calibration")  # relative to the repo
+
 # Storage
 DB_PATH = os.environ.get("MODERATION_DB", str(ROOT / "moderation.db"))
 

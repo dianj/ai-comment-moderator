@@ -7,6 +7,7 @@ and the rules can overrule a model answer that contradicts itself (for example
 from dataclasses import dataclass
 
 from . import config
+from .decisions import gate_rule
 from .detectors import Finding, looks_bulgarian
 
 BLOCKED_CATEGORIES = {"Threat", "Hate Speech", "Spam", "PII", "Prompt Injection"}
@@ -64,6 +65,16 @@ def decide_from_verdict(decision: str, category: str, toxicity_score: int, reaso
     if toxicity_score >= config.REVIEW_TOXICITY_THRESHOLD:
         return make("NEEDS_REVIEW", "clean-but-high-toxicity")
     return make("APPROVED", "clean")
+
+
+def apply_gate(decision: Decision, gate) -> Decision:
+    """Two keys: an automatic APPROVED or REJECTED stands only if the calibrated gate agrees confidently.
+    The gate can move a comment to review, never out of it."""
+    rule = gate_rule(decision.status, gate)
+    if rule is None:
+        return decision
+    return Decision("NEEDS_REVIEW", decision.category, decision.toxicity_score, decision.reason, rule,
+                    decision.decided_by)
 
 
 FALLBACK_REASON = "Automatic moderation is unavailable right now. The comment is waiting for a human moderator."

@@ -27,6 +27,7 @@ os.environ["MODERATION_DB"] = os.path.join(_TMP_DIR, "test_moderation.db")
 os.environ["LMSTUDIO_URL"] = _FAKE.base_url
 os.environ["ADMIN_TOKEN"] = ADMIN_TOKEN
 os.environ["RATE_LIMIT_PER_MINUTE"] = str(RATE_LIMIT)
+os.environ["DECISION_GATE"] = "0"      # the gate's own tests switch it on (tests/test_gate.py)
 
 from moderator import api, db  # noqa: E402  (must come after the environment is prepared)
 
@@ -82,3 +83,9 @@ def app_url(fake_lm):
     yield f"http://127.0.0.1:{port}"
     uv.should_exit = True
     thread.join(timeout=5)
+
+
+def pytest_collection_modifyitems(items):
+    """Browser tests last: Playwright's sync API leaves an event loop running in the main thread, after which
+    asyncio.run() in the gate tests would fail."""
+    items.sort(key=lambda item: "e2e" in item.nodeid.split("::")[0])
