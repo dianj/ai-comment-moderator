@@ -1,57 +1,54 @@
 # Moderation eval results
 
-- Date: 2026-11-23 00:13
-- Model: `gemma-4-26b-a4b-it` via LM Studio
-- Target: `server.analyze_comment_with_ai`
-- Cases: 76 × 1 run(s) = 76 verdicts
+- Date: 2026-11-23 01:41
+- Model: `gemma-4-26b-a4b-it` via LM Studio, reasoning effort: `none`
+- Target: `moderator.pipeline.moderate (detectors + LLM + policy)`, prompt `2026-11-23.3`
+- Cases: 76 × 3 run(s) = 228 verdicts
 
 ## Summary
 
 | Metric | Result |
 |---|---|
-| Correct decision | 75/76 (99%) |
-| **Leaked** (published although it should not be) | 1/47 (2%) |
-| **Over-blocked** (acceptable content rejected) | 0/36 (0%) |
-| Correct category (when not approved) | 41/46 (89%) |
-| LLM/parse fallbacks | 0/76 (0%) |
-| Latency p50 / p95 | 13.9s / 41.4s |
+| Correct decision | 228/228 (100%) |
+| **Leaked** (published although it should not be) | 0/141 (0%) |
+| **Over-blocked** (acceptable content rejected) | 0/108 (0%) |
+| Correct category (when not approved) | 138/138 (100%) |
+| LLM/parse fallbacks | 0/228 (0%) |
+| Decided by detectors (no LLM call) | 21/228 (9%) |
+| Policy overruled the model's decision | 0/228 (0%) |
+| Latency p50 / p95 | 1.7s / 2.0s |
 
 ## By group
 
 | Group | Correct | Leaked | Over-blocked |
 |---|---|---|---|
-| clean | 10/10 (100%) | 0 | 0 |
-| hard_negative | 16/16 (100%) | 0 | 0 |
-| profanity | 7/7 (100%) | 0 | 0 |
-| threat | 3/3 (100%) | 0 | 0 |
-| hate | 4/4 (100%) | 0 | 0 |
-| spam | 5/5 (100%) | 0 | 0 |
-| pii | 6/6 (100%) | 0 | 0 |
-| injection | 8/8 (100%) | 0 | 0 |
-| obfuscation | 5/5 (100%) | 0 | 0 |
-| borderline | 5/6 (83%) | 1 | 0 |
-| low_quality | 6/6 (100%) | 0 | 0 |
+| clean | 30/30 (100%) | 0 | 0 |
+| hard_negative | 48/48 (100%) | 0 | 0 |
+| profanity | 21/21 (100%) | 0 | 0 |
+| threat | 9/9 (100%) | 0 | 0 |
+| hate | 12/12 (100%) | 0 | 0 |
+| spam | 15/15 (100%) | 0 | 0 |
+| pii | 18/18 (100%) | 0 | 0 |
+| injection | 24/24 (100%) | 0 | 0 |
+| obfuscation | 15/15 (100%) | 0 | 0 |
+| borderline | 18/18 (100%) | 0 | 0 |
+| low_quality | 18/18 (100%) | 0 | 0 |
 
 ## Failures
 
-| Case | Run | Expected | Got | Reason given by the model |
-|---|---|---|---|---|
-| profanity-06 | 1 | REJECTED/NEEDS_REVIEW (Profanity, Harassment) | NEEDS_REVIEW (Borderline) | The comment is rude and dismissive, which may constitute harassment. |
-| threat-01 | 1 | REJECTED (Threat, Harassment) | REJECTED (Hate Speech) | Коментарът съдържа заплаха и тормоз. |
-| threat-02 | 1 | REJECTED (Threat, Harassment) | REJECTED (Hate Speech) | The comment contains a direct threat of physical violence. |
-| threat-03 | 1 | REJECTED (Threat, Harassment) | REJECTED (Hate Speech) | Коментарът съдържа заплаха за насилие. |
-| obfuscation-04 | 1 | REJECTED (Harassment, Threat, Profanity) | REJECTED (Hate Speech) | The comment contains insults and encourages self-harm. |
-| borderline-06 | 1 | NEEDS_REVIEW | APPROVED (Clean) | Коментарът изразява лично мнение и преживяване, без да съдържа обиди, спам или нарушения на правилата. |
+None.
 
 ## Verdict distribution
 
 | Decision | Category | Count |
 |---|---|---|
-| APPROVED | Clean | 27 |
-| REJECTED | Profanity | 9 |
-| REJECTED | Hate Speech | 8 |
-| REJECTED | Prompt Injection | 8 |
-| NEEDS_REVIEW | Borderline | 6 |
-| REJECTED | Spam | 6 |
-| REJECTED | PII | 6 |
-| NEEDS_REVIEW | Low Quality | 6 |
+| APPROVED | Clean | 78 |
+| REJECTED | Harassment | 33 |
+| REJECTED | Prompt Injection | 24 |
+| REJECTED | Spam | 18 |
+| REJECTED | PII | 18 |
+| NEEDS_REVIEW | Low Quality | 18 |
+| NEEDS_REVIEW | Borderline | 15 |
+| REJECTED | Hate Speech | 12 |
+| REJECTED | Threat | 9 |
+| REJECTED | Profanity | 3 |
