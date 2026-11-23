@@ -23,7 +23,7 @@ import httpx
 from .calibration import Calibration, apply_temperature
 from .records import DecisionRecord
 
-DECIDE_VERSION = "0.1.0"
+DECIDE_VERSION = "0.1.1"
 PROMPT_VERSION = "gate-2026-11-24.1"
 MIN_ALLOWED_MASS = 0.5   # below this, the model mostly answered something else: the format failed
 
@@ -163,7 +163,10 @@ class Decider:
     def calibration(self, question: Question) -> Calibration | None:
         """The fitted temperature for this question, if one exists for this model and prompt."""
         if question.id not in self._calibrations:
-            cal = Calibration.load(self.calibration_dir, question.id) if self.calibration_dir else None
+            cal = None
+            if self.calibration_dir:  # a model's own folder first (calibration/<model>/), then the default one
+                cal = (Calibration.load(Path(self.calibration_dir) / self.model, question.id)
+                       or Calibration.load(self.calibration_dir, question.id))
             if cal and (cal.model != self.model or cal.prompt_hash != question.prompt_hash()):
                 log.warning("calibration for %s was fitted for %s / %s, not %s / %s: not used", question.id,
                             cal.model, cal.prompt_hash, self.model, question.prompt_hash())

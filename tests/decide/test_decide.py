@@ -146,7 +146,7 @@ def test_record_keeps_a_hash_not_the_text(tmp_path):
     d = ask(decider(FakeModel(lp(Y=0.99, N=0.01))), AGREE, "my secret text")
     dumped = d.record.model_dump_json()
     assert "my secret text" not in dumped and len(d.record.input_sha256) == 64
-    assert d.record.decide_version == "0.1.0" and d.record.labels == ["yes", "no"]
+    assert d.record.decide_version == "0.1.1" and d.record.labels == ["yes", "no"]
 
 
 def test_ask_many_and_multilabel():
@@ -192,3 +192,12 @@ def test_metrics():
     assert [r["n"] for r in metrics.reliability(items)] == [1, 2]
     assert metrics.percentile([5, 1, 3], 0.5) == 3 and metrics.percentile([], 0.5) is None
     assert metrics.summary([]) == {"n": 0, "accuracy": 0.0, "ece": 0.0, "brier": 0.0}
+
+
+def test_a_models_own_calibration_folder_comes_first(tmp_path):
+    question = AGREE
+    Calibration(question.id, "m2", question.prompt_hash(), 3.0, 30, "2026-11-24", {}, {}).save(tmp_path / "m2")
+    Calibration(question.id, "m1", question.prompt_hash(), 1.0, 30, "2026-11-24", {}, {}).save(tmp_path)
+    assert Decider("http://lm/v1", "m2", calibration_dir=tmp_path).calibration(question).temperature == 3.0
+    assert Decider("http://lm/v1", "m1", calibration_dir=tmp_path).calibration(question).temperature == 1.0
+    assert Decider("http://lm/v1", "m3", calibration_dir=tmp_path).calibration(question) is None
