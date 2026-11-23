@@ -11,10 +11,12 @@ tracks the two errors that matter most for a comment section:
 Usage:
   python evals/run_evals.py                      # all cases, once
   python evals/run_evals.py --repeat 3           # consistency across runs
+  python evals/run_evals.py --reasoning "" --report reasoning-default.md   # model default reasoning
   python evals/run_evals.py --only pii,injection-03
   python evals/run_evals.py --regrade evals/results/run-....json   # re-score saved verdicts
 """
 import argparse
+import asyncio
 import json
 import os
 import statistics
@@ -38,16 +40,26 @@ def load_cases(only=None):
     return cases
 
 
-def make_moderator(base_url, model):
-    """Return (name, fn(author, content) -> verdict dict). Points the app at the given LM Studio."""
+def make_moderator(base_url, model, reasoning):
+    """Return (meta, fn(author, content) -> verdict dict) for the real pipeline (detectors + LLM + policy)."""
+    # Settings are read when the package is imported, so set them first. The eval never touches the app's DB.
+    os.environ.update(LMSTUDIO_URL=base_url, MODERATION_MODEL=model, LLM_REASONING_EFFORT=reasoning,
+                      ADMIN_TOKEN="eval-run", MODERATOR_SKIP_DOTENV="1")
     sys.path.insert(0, str(ROOT))
-    os.chdir(ROOT)
-    import server  # noqa: E402  (the prototype keeps everything in server.py)
-    from openai import OpenAI
+    from moderator import pipeline  # noqa: E402
+    from moderator.prompts import PROMPT_VERSION  # noqa: E402
 
-    server.llm_client = OpenAI(base_url=base_url, api_key="lm-studio")
-    server.MODEL_NAME = model
-    return "server.analyze_comment_with_ai", server.analyze_comment_with_ai
+    def moderate(author, content):
+        result = asyncio.run(pipeline.moderate(author, content))
+        d = result.decision
+        return {"decision": d.status, "category": d.category, "toxicity_score": d.toxicity_score,
+                "reason": d.reason, "decided_by": d.decided_by, "rule": d.rule,
+                "model_decision": result.details.get("model_decision"),
+                "reasoning_tokens": result.details.get("reasoning_tokens")}
+
+    meta = {"target": "moderator.pipeline.moderate (detectors + LLM + policy)",
+            "prompt_version": PROMPT_VERSION, "reasoning_effort": reasoning or "model default"}
+    return meta, moderate
 
 
 def grade(case, verdict):
@@ -57,6 +69,10 @@ def grade(case, verdict):
     category_ok = None
     if case.get("categories") and decision != "APPROVED":
         category_ok = category in case["categories"]
+        # "Borderline" is the generic label for "a human should look at this"; with a
+        # NEEDS_REVIEW decision that the case allows, it is a correct label too.
+        if decision == "NEEDS_REVIEW" and category == "Borderline" and "NEEDS_REVIEW" in case["expect"]:
+            category_ok = True
     return {
         "ok": ok,
         "category_ok": category_ok,
@@ -96,12 +112,21 @@ def report(meta, cases, records):
     latencies = sorted(r["latency_s"] for r in records)
     p95 = latencies[max(0, int(round(0.95 * len(latencies))) - 1)] if latencies else 0
 
+    leaked = sum(r["leaked"] for r in harmful)
+    over_blocked = sum(r["over_blocked"] for r in acceptable)
+    by_rules = sum(r["verdict"].get("decided_by") == "rule" for r in records)
+    overruled = sum(bool(r["verdict"].get("model_decision"))
+                    and r["verdict"]["model_decision"] != r["verdict"].get("decision") for r in records)
+    reasoning = meta.get("reasoning_effort", "model default")
+    prompt = f", prompt `{meta['prompt_version']}`" if meta.get("prompt_version") else ""
+    latency = (f"{statistics.median(latencies):.1f}s / {p95:.1f}s" if latencies else "n/a")
+
     lines = [
         "# Moderation eval results",
         "",
         f"- Date: {meta['date']}",
-        f"- Model: `{meta['model']}` via LM Studio",
-        f"- Target: `{meta['target']}`",
+        f"- Model: `{meta['model']}` via LM Studio, reasoning effort: `{reasoning}`",
+        f"- Target: `{meta['target']}`{prompt}",
         f"- Cases: {len(cases)} × {meta['repeat']} run(s) = {total} verdicts",
         "",
         "## Summary",
@@ -109,11 +134,13 @@ def report(meta, cases, records):
         "| Metric | Result |",
         "|---|---|",
         f"| Correct decision | {pct(sum(r['ok'] for r in records), total)} |",
-        f"| **Leaked** (published although it should not be) | {pct(sum(r['leaked'] for r in harmful), len(harmful))} |",
-        f"| **Over-blocked** (acceptable content rejected) | {pct(sum(r['over_blocked'] for r in acceptable), len(acceptable))} |",
+        f"| **Leaked** (published although it should not be) | {pct(leaked, len(harmful))} |",
+        f"| **Over-blocked** (acceptable content rejected) | {pct(over_blocked, len(acceptable))} |",
         f"| Correct category (when not approved) | {pct(sum(r['category_ok'] for r in with_cat), len(with_cat))} |",
         f"| LLM/parse fallbacks | {pct(sum(r['fallback'] for r in records), total)} |",
-        f"| Latency p50 / p95 | {statistics.median(latencies):.1f}s / {p95:.1f}s |" if latencies else "| Latency | n/a |",
+        f"| Decided by detectors (no LLM call) | {pct(by_rules, total)} |",
+        f"| Policy overruled the model's decision | {pct(overruled, total)} |",
+        f"| Latency p50 / p95 | {latency} |",
         "",
         "## By group",
         "",
@@ -151,7 +178,10 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--base-url", default=os.environ.get("LMSTUDIO_URL", "http://localhost:1235/v1"))
     ap.add_argument("--model", default=os.environ.get("MODERATION_MODEL", "gemma-4-26b-a4b-it"))
+    ap.add_argument("--reasoning", default=os.environ.get("LLM_REASONING_EFFORT", "none"),
+                    help='reasoning effort sent to the model ("none", "low", ...); "" = model default')
     ap.add_argument("--repeat", type=int, default=1)
+    ap.add_argument("--report", default="latest.md", help="file name for the summary in evals/results/")
     ap.add_argument("--only", help="comma-separated case ids and/or group names")
     ap.add_argument("--regrade", help="re-score a saved run-*.json with the current dataset labels")
     args = ap.parse_args()
@@ -170,9 +200,9 @@ def main():
         cases = load_cases(args.only)
         if not cases:
             sys.exit("No cases match --only.")
-        target, moderate = make_moderator(args.base_url, args.model)
-        meta = {"date": datetime.now().strftime("%Y-%m-%d %H:%M"), "model": args.model,
-                "target": target, "repeat": args.repeat}
+        target_meta, moderate = make_moderator(args.base_url, args.model, args.reasoning)
+        meta = {**target_meta, "date": datetime.now().strftime("%Y-%m-%d %H:%M"), "model": args.model,
+                "repeat": args.repeat}
         records = run(cases, moderate, args.repeat)
         stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
         (RESULTS / f"run-{stamp}.json").write_text(
@@ -180,7 +210,7 @@ def main():
 
     md = report(meta, cases, records)
     if not args.only:
-        (RESULTS / "latest.md").write_text(md, encoding="utf-8")
+        (RESULTS / args.report).write_text(md, encoding="utf-8")
     print("\n" + md)
 
 

@@ -9,10 +9,11 @@ def seeded(client, fake_lm):
         (("REJECTED", "Profanity", 92, "insult"), "You idiot"),
         (("NEEDS_REVIEW", "Low Quality", 10, "test post"), "Testing testing"),
         (("NEEDS_REVIEW", "Borderline", 45, "sarcasm"), "Sure, another expert"),
-        (("REJECTED", "PII", 75, "phone"), "Call Ivan on 0888 123 456"),
+        (None, "Call Ivan on 0888 123 456"),  # decided by the phone detector (PII, 80), no LLM call
         (("APPROVED", "Clean", 5, "fine"), "Great article about Gemma"),
     ]:
-        fake_lm.verdict(*verdict)
+        if verdict:
+            fake_lm.verdict(*verdict)
         assert client.post("/api/comments", json={"author": "Тест", "content": text}).status_code == 200
 
 
@@ -55,7 +56,7 @@ def test_search_treats_wildcards_literally(client, admin_headers, seeded):
 
 
 def test_filters_combine(client, admin_headers, seeded):
-    assert ids(get(client, admin_headers, status="REJECTED", min_toxicity=80)) == [4, 3]
+    assert ids(get(client, admin_headers, status="REJECTED", min_toxicity=85)) == [4, 3]
 
 
 def test_sort_by_toxicity_and_oldest(client, admin_headers, seeded):

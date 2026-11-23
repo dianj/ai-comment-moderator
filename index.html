@@ -61,6 +61,13 @@
         .empty { color: #94a3b8; font-size: 14px; padding: 12px 4px; }
         #loadMoreBtn { display: none; margin: 4px auto 0; }
         @media (max-width: 760px) { .filter-row { grid-template-columns: 1fr 1fr; } }
+        .source-tag { display: inline-block; padding: 1px 7px; margin-right: 6px; border-radius: 6px; background: #1e3a5f; color: #93c5fd; font-size: 11px; font-weight: 600; }
+        .source-tag.reviewed { background: #3b2f63; color: #c4b5fd; }
+        .btn-ghost-sm { background: transparent; color: #94a3b8; border: 1px solid #475569; }
+        .history { margin-top: 10px; border-top: 1px solid #334155; padding-top: 8px; font-size: 12px; color: #cbd5e1; }
+        .history-row { display: grid; grid-template-columns: 140px 1fr; gap: 2px 12px; padding: 4px 0; }
+        .history-at { color: #64748b; font-variant-numeric: tabular-nums; }
+        .history-details { grid-column: 2; color: #94a3b8; }
         @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2.5s; } }
     </style>
 </head>
@@ -183,6 +190,22 @@
                 invalidToken: 'Invalid token.',
                 tokenHint: 'Running it yourself? The token is ADMIN_TOKEN in your .env file. If that is empty, the server prints a token in its console at start-up.',
                 aiAnalysis: 'AI analysis',
+                sourceRule: 'Rule',
+                sourceAi: 'AI',
+                sourceFallback: 'Fallback',
+                sourceSeed: 'Demo',
+                reviewedByHuman: 'Reviewed by moderator',
+                history: 'History',
+                noHistory: 'No recorded events.',
+                rule: 'rule',
+                found: 'found',
+                actor_rule: 'Detector',
+                actor_ai: 'AI',
+                actor_fallback: 'Fallback',
+                actor_human: 'Moderator',
+                action_created: 'decided',
+                action_override: 'changed',
+                action_deleted: 'deleted',
                 approve: 'Approve',
                 block: 'Block',
                 delete: 'Delete',
@@ -234,6 +257,22 @@
                 invalidToken: 'Невалиден токен.',
                 tokenHint: 'Пускате го локално? Токенът е ADMIN_TOKEN във файла .env. Ако там е празно, сървърът показва токен в конзолата при стартиране.',
                 aiAnalysis: 'AI анализ',
+                sourceRule: 'Правило',
+                sourceAi: 'AI',
+                sourceFallback: 'Резервен режим',
+                sourceSeed: 'Демо',
+                reviewedByHuman: 'Прегледан от модератор',
+                history: 'История',
+                noHistory: 'Няма записани събития.',
+                rule: 'правило',
+                found: 'открити',
+                actor_rule: 'Детектор',
+                actor_ai: 'AI',
+                actor_fallback: 'Резервен режим',
+                actor_human: 'Модератор',
+                action_created: 'реши',
+                action_override: 'промени',
+                action_deleted: 'изтри',
                 approve: 'Одобри ръчно',
                 block: 'Блокирай',
                 delete: 'Изтрий',
@@ -374,13 +413,49 @@
                         </span>
                     </div>
                     <p style="margin-bottom: 8px;">${escapeHtml(c.content)}</p>
-                    <div style="font-size: 12px; color: #94a3b8;"><strong>${escapeHtml(t('aiAnalysis'))}:</strong> ${escapeHtml(c.ai_reason)}</div>
+                    <div style="font-size: 12px; color: #94a3b8;">
+                        <span class="source-tag">${escapeHtml(t(SOURCE_LABELS[c.decided_by] || 'sourceAi'))}</span>
+                        ${c.reviewed_by ? `<span class="source-tag reviewed">${escapeHtml(t('reviewedByHuman'))}</span>` : ''}
+                        <strong>${escapeHtml(t('aiAnalysis'))}:</strong> ${escapeHtml(c.ai_reason)}
+                    </div>
                     <div class="admin-actions">
                         <button class="btn-sm btn-approve" onclick="overrideStatus(${id}, 'APPROVED')">${escapeHtml(t('approve'))}</button>
                         <button class="btn-sm btn-reject" onclick="overrideStatus(${id}, 'REJECTED')">${escapeHtml(t('block'))}</button>
+                        <button class="btn-sm btn-ghost-sm" onclick="toggleHistory(${id}, this)">${escapeHtml(t('history'))}</button>
                         <button class="btn-sm btn-delete" onclick="deleteComment(${id})">${escapeHtml(t('delete'))}</button>
                     </div>
+                    <div class="history" id="history-${id}" hidden></div>
                 </div>`;
+        }
+
+        const SOURCE_LABELS = { rule: 'sourceRule', ai: 'sourceAi', fallback: 'sourceFallback', seed: 'sourceSeed' };
+
+        function describeEvent(e) {
+            const d = e.details || {};
+            const parts = [];
+            if (d.rule) parts.push(`${t('rule')}: ${d.rule}`);
+            if (d.model) parts.push(`${d.model} · prompt ${d.prompt_version}`);
+            if (d.llm_latency_ms != null) parts.push(`${(d.llm_latency_ms / 1000).toFixed(1)} s`);
+            if (d.findings && d.findings.length) parts.push(`${t('found')}: ${d.findings.map(f => f.kind).join(', ')}`);
+            if (d.error) parts.push(d.error);
+            return parts.join(' · ');
+        }
+
+        // The audit trail of one comment, from the append-only moderation_events table.
+        async function toggleHistory(id, button) {
+            const box = document.getElementById(`history-${id}`);
+            if (!box.hidden) { box.hidden = true; return; }
+            const res = await adminFetch(`/api/admin/comments/${Number(id)}/events`);
+            if (!res.ok) return;
+            const { events } = await res.json();
+            box.innerHTML = events.length ? events.map(e => `
+                <div class="history-row">
+                    <span class="history-at">${escapeHtml(e.at)}</span>
+                    <span class="history-what">${escapeHtml(t('actor_' + e.actor) || e.actor)} — ${escapeHtml(t('action_' + e.action) || e.action)}
+                        ${e.from_status ? escapeHtml(e.from_status) + ' → ' : ''}${escapeHtml(e.to_status || '')}</span>
+                    <span class="history-details">${escapeHtml(describeEvent(e))}</span>
+                </div>`).join('') : `<div class="history-row">${escapeHtml(t('noHistory'))}</div>`;
+            box.hidden = false;
         }
 
         async function loadAuditLog(append = false) {

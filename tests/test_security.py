@@ -50,8 +50,9 @@ def test_repeated_override_does_not_stack_the_note(client, admin_headers):
     for status in ("APPROVED", "REJECTED", "APPROVED"):
         client.post("/api/moderate", json={"comment_id": 3, "new_status": status}, headers=admin_headers)
     log = client.get("/api/admin/comments", headers=admin_headers).json()["audit_log"]
-    reason = next(c for c in log if c["id"] == 3)["ai_reason"]
-    assert reason.count("Human Moderator Override") <= 1
+    row = next(c for c in log if c["id"] == 3)
+    assert "Override" not in row["ai_reason"]       # the AI's reason stays as the AI wrote it
+    assert row["reviewed_by"] == "human" and row["status"] == "APPROVED"
 
 
 # --- input limits ---------------------------------------------------------------------------

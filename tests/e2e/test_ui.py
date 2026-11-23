@@ -1,7 +1,6 @@
 """Browser tests (Playwright): comment text is shown as text, never run as HTML/JS."""
 import httpx
 import pytest
-
 from conftest import ADMIN_TOKEN
 
 pytestmark = pytest.mark.e2e
@@ -101,7 +100,8 @@ def test_admin_can_delete_a_comment_after_confirming(page, app_url):
 
 def test_waiting_messages_change_as_time_passes(page, app_url, fake_lm):
     """Real stages are 10/20/30 s; the test compresses them to keep the run short."""
-    page.add_init_script("window.__slowHints = [[0.4, 'processingSlow'], [0.8, 'processingSlower'], [1.2, 'processingSlowest']]")
+    page.add_init_script(
+        "window.__slowHints = [[0.4, 'processingSlow'], [0.8, 'processingSlower'], [1.2, 'processingSlowest']]")
     fake_lm.delay_s = 2.0
     page.goto(app_url)
     page.fill("#contentInput", "Great article")
@@ -151,11 +151,11 @@ def test_admin_filters_status_search_and_reset(page, app_url, fake_lm):
 
 
 def test_admin_load_more_pages_through_the_log(page, app_url, fake_lm):
-    import server
-    server.rate_limiter.reset()
+    from moderator import api
+    api.rate_limiter.reset()
     for i in range(20):  # 3 demo comments + 20 = 23, page size is 20
         fake_lm.verdict("APPROVED", "Clean", 0, "ok")
-        server.rate_limiter.reset()
+        api.rate_limiter.reset()
         httpx.post(f"{app_url}/api/comments", json={"author": "Bulk", "content": f"Comment {i}"})
     _login(page, app_url)
     assert page.locator("#auditLogList .comment-item").count() == 20
@@ -163,3 +163,19 @@ def test_admin_load_more_pages_through_the_log(page, app_url, fake_lm):
     page.click("#loadMoreBtn")
     page.wait_for_function("document.querySelectorAll('#auditLogList .comment-item').length === 23")
     assert not page.is_visible("#loadMoreBtn")
+
+
+def test_admin_sees_who_decided_and_the_history(page, app_url, fake_lm, admin_headers):
+    r = httpx.post(f"{app_url}/api/comments", json={"author": "Ivan", "content": "Call me on 0888 123 456"})
+    cid = r.json()["id"]
+    httpx.post(f"{app_url}/api/moderate", json={"comment_id": cid, "new_status": "APPROVED"}, headers=admin_headers)
+
+    _login(page, app_url)
+    item = page.locator("#auditLogList .comment-item").first
+    assert "Rule" in item.inner_text() and "Reviewed by moderator" in item.inner_text()
+    item.get_by_role("button", name="History").click()
+    history = page.locator(f"#history-{cid}")
+    history.wait_for(state="visible")
+    text = history.inner_text()
+    assert "Detector — decided" in text and "pii-detector" in text and "phone" in text
+    assert "Moderator — changed" in text and "REJECTED → APPROVED" in text

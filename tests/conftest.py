@@ -28,7 +28,7 @@ os.environ["LMSTUDIO_URL"] = _FAKE.base_url
 os.environ["ADMIN_TOKEN"] = ADMIN_TOKEN
 os.environ["RATE_LIMIT_PER_MINUTE"] = str(RATE_LIMIT)
 
-import server  # noqa: E402  (must come after the environment is prepared)
+from moderator import api, db  # noqa: E402  (must come after the environment is prepared)
 
 
 @pytest.fixture(scope="session")
@@ -43,17 +43,15 @@ def clean_state(fake_lm):
     fake_lm.reset()
     if os.path.exists(os.environ["MODERATION_DB"]):
         os.remove(os.environ["MODERATION_DB"])
-    server.init_db()
-    limiter = getattr(server, "rate_limiter", None)
-    if limiter is not None:
-        limiter.reset()
+    db.init_db()
+    api.rate_limiter.reset()
     yield
 
 
 @pytest.fixture()
 def client():
     from fastapi.testclient import TestClient
-    return TestClient(server.app)
+    return TestClient(api.app)
 
 
 @pytest.fixture()
@@ -73,7 +71,7 @@ def app_url(fake_lm):
     import uvicorn
 
     port = _free_port()
-    uv = uvicorn.Server(uvicorn.Config(server.app, host="127.0.0.1", port=port, log_level="warning"))
+    uv = uvicorn.Server(uvicorn.Config(api.app, host="127.0.0.1", port=port, log_level="warning"))
     thread = threading.Thread(target=uv.run, daemon=True)
     thread.start()
     deadline = time.time() + 15
