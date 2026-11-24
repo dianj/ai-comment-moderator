@@ -89,7 +89,7 @@ All settings are in [`.env.example`](.env.example): model URL and name, reasonin
 
 ## Testing
 
-**90 deterministic tests, no GPU, 97% line coverage.** A scripted fake of LM Studio (`tests/fake_lmstudio.py`) records every request and can be slow or fail on purpose. CI runs lint and the tests on every push and keeps Playwright traces of failed browser tests.
+**127 deterministic tests, no GPU, 99% line coverage.** A scripted fake of LM Studio (`tests/fake_lmstudio.py`) records every request and can be slow or fail on purpose. CI runs lint and the tests on every push and keeps Playwright traces of failed browser tests.
 
 | Suite | What it covers |
 |---|---|
