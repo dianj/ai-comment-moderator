@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 1150" width="1440" height="1150" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 1306" width="1440" height="1306" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
   <title>AI Comment Moderator: architecture and the path of one comment</title>
-  <desc>The browser posts a comment to a FastAPI server. A pipeline checks input limits, runs deterministic detectors for personal data, asks a local LM Studio model for a JSON-schema verdict only when needed, and a policy layer turns the result into the final decision. Comments and an append-only audit log are stored in SQLite; moderators filter, review, override and delete in an admin panel.</desc>
+  <desc>The browser posts a comment to a FastAPI server. A pipeline checks input limits, runs deterministic detectors for personal data, asks a local LM Studio model for a JSON-schema verdict only when needed, a calibrated decision gate (a one-letter answer read from the model's log-probabilities) checks every automatic publish or reject, and a policy layer turns the result into the final decision. Comments and an append-only audit log are stored in SQLite; moderators filter, review, override and delete in an admin panel.</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
@@ -22,14 +22,14 @@
     </style>
   </defs>
 
-  <rect x="0" y="0" width="1440" height="1150" fill="#ffffff"/>
+  <rect x="0" y="0" width="1440" height="1306" fill="#ffffff"/>
 
   <!-- Title -->
   <text x="24" y="40" class="title">AI Comment Moderator: Architecture</text>
   <text x="24" y="64" class="subtitle">The model classifies, the code decides. Clear cases never reach the LLM; every decision names its rule and is written to an append-only audit log. Everything runs locally.</text>
 
   <!-- ===================== BROWSER ===================== -->
-  <rect x="24" y="84" width="340" height="760" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.5"/>
+  <rect x="24" y="84" width="340" height="888" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.5"/>
   <text x="40" y="108" class="h">Browser · index.html (vanilla JS)</text>
 
   <rect x="40" y="124" width="308" height="330" rx="6" class="sub"/>
@@ -45,7 +45,7 @@
   <text x="54" y="334" class="t">• All user and model text rendered as</text>
   <text x="54" y="352" class="t">   text (escaped), never as HTML</text>
 
-  <rect x="40" y="470" width="308" height="358" rx="6" class="sub"/>
+  <rect x="40" y="470" width="308" height="486" rx="6" class="sub"/>
   <text x="54" y="492" class="sh">Moderator panel</text>
   <text x="250" y="492" class="lock">X-Admin-Token</text>
   <text x="54" y="516" class="t">• Status chips with counts:</text>
@@ -62,7 +62,7 @@
   <text x="54" y="734" class="t">   in the console at start-up</text>
 
   <!-- ===================== FASTAPI ===================== -->
-  <rect x="404" y="84" width="600" height="760" rx="10" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5"/>
+  <rect x="404" y="84" width="600" height="888" rx="10" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5"/>
   <text x="420" y="108" class="h">FastAPI · moderator/ package (uvicorn, port 8000)</text>
 
   <rect x="420" y="124" width="568" height="168" rx="6" class="sub"/>
@@ -79,7 +79,7 @@
   <text x="930" y="260" class="lock">token</text>
   <text x="930" y="278" class="lock">token</text>
 
-  <rect x="420" y="308" width="568" height="520" rx="6" class="sub"/>
+  <rect x="420" y="308" width="568" height="648" rx="6" class="sub"/>
   <text x="434" y="330" class="sh">Moderation pipeline (pipeline.py)</text>
 
   <rect x="436" y="344" width="536" height="62" rx="5" class="stage"/>
@@ -99,17 +99,28 @@
   <text x="450" y="580" class="t">JSON schema: decision · 1 of 10 categories · toxicity 0–100 · reason in the comment's language</text>
   <text x="450" y="598" class="t">Async client, timeout, reasoning_effort "none" · invalid or missing answer → fallback</text>
 
-  <rect x="436" y="628" width="536" height="110" rx="5" class="stage"/>
-  <text x="450" y="648" class="sh">4 · Policy (policy.py) · the code decides, and records which rule did</text>
-  <text x="450" y="668" class="t">Threat · Hate Speech · Spam · PII · Prompt Injection → REJECTED, whatever the model said</text>
-  <text x="450" y="686" class="t">Profanity · Harassment → REJECTED or NEEDS_REVIEW, never published automatically</text>
-  <text x="450" y="704" class="t">Borderline · Low Quality → NEEDS_REVIEW · "Clean" but toxicity ≥ 40 → NEEDS_REVIEW</text>
-  <text x="450" y="722" class="t">LLM unavailable → NEEDS_REVIEW (fail closed: nothing is published without a verdict)</text>
+  <rect x="436" y="628" width="536" height="118" rx="5" class="stage" stroke="#7c3aed"/>
+  <text x="450" y="648" class="sh">3b · Decision gate (decisions.py, decide/) · in parallel with step 3</text>
+  <text x="450" y="668" class="t">One closed question, answered with one letter: A publish · B block · C a human should decide</text>
+  <text x="450" y="686" class="t">p from the first token's log-probabilities, calibrated per model (temperature, never below 1)</text>
+  <text x="450" y="704" class="t">An automatic APPROVED / REJECTED stands only if the gate agrees: p ≥ 0.95 publish, ≥ 0.85 block</text>
+  <text x="450" y="722" class="t">Otherwise → NEEDS_REVIEW (rule gate-…). The gate can only send a comment to a person.</text>
+  <text x="450" y="738" class="lock">act · confirm · escalate</text>
+  <!-- gate call to the model -->
+  <line x1="972" y1="634" x2="1042" y2="634" class="call" marker-end="url(#arrow)"/>
+  <circle cx="1022" cy="634" r="10" fill="#7c3aed"/><text x="1022" y="634" class="n">3b</text>
 
-  <rect x="436" y="748" width="536" height="66" rx="5" class="stage"/>
-  <text x="450" y="768" class="sh">5 · Store (db.py)</text>
-  <text x="450" y="788" class="t">Comment + a "created" event: decided by, rule, model, prompt version, latency, raw answer</text>
-  <text x="450" y="804" class="t">Overrides and deletes are appended as events; nothing in the log is updated in place</text>
+  <rect x="436" y="756" width="536" height="110" rx="5" class="stage"/>
+  <text x="450" y="776" class="sh">4 · Policy (policy.py) · the code decides, and records which rule did</text>
+  <text x="450" y="796" class="t">Threat · Hate Speech · Spam · PII · Prompt Injection → REJECTED, whatever the model said</text>
+  <text x="450" y="814" class="t">Profanity · Harassment → REJECTED or NEEDS_REVIEW, never published automatically</text>
+  <text x="450" y="832" class="t">Borderline · Low Quality → NEEDS_REVIEW · "Clean" but toxicity ≥ 40 → NEEDS_REVIEW</text>
+  <text x="450" y="850" class="t">LLM unavailable → NEEDS_REVIEW (fail closed: nothing is published without a verdict)</text>
+
+  <rect x="436" y="876" width="536" height="66" rx="5" class="stage"/>
+  <text x="450" y="896" class="sh">5 · Store (db.py)</text>
+  <text x="450" y="916" class="t">Comment + a "created" event: decided by, rule, model, prompt version, latency, raw answer</text>
+  <text x="450" y="932" class="t">Overrides and deletes are appended as events; nothing in the log is updated in place</text>
 
   <!-- ===================== RIGHT COLUMN ===================== -->
   <!-- Legend -->
@@ -146,15 +157,15 @@
   <text x="1060" y="630" class="t">LMSTUDIO_URL / MODERATION_MODEL in .env</text>
 
   <!-- SQLite -->
-  <rect x="1044" y="660" width="372" height="184" rx="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
-  <text x="1060" y="684" class="h">SQLite · moderation.db</text>
-  <text x="1060" y="708" class="sh">comments</text>
-  <text x="1060" y="728" class="t">author · content · status · category · toxicity</text>
-  <text x="1060" y="746" class="t">reason · decided_by · reviewed_by / reviewed_at</text>
-  <text x="1060" y="770" class="sh">moderation_events (append-only)</text>
-  <text x="1060" y="790" class="t">comment · time · actor (rule / ai / fallback / human)</text>
-  <text x="1060" y="808" class="t">action (created / override / deleted) · from → to</text>
-  <text x="1060" y="826" class="t">details JSON (model, prompt, rule, latency, raw)</text>
+  <rect x="1044" y="788" width="372" height="184" rx="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="1060" y="812" class="h">SQLite · moderation.db</text>
+  <text x="1060" y="836" class="sh">comments</text>
+  <text x="1060" y="856" class="t">author · content · status · category · toxicity</text>
+  <text x="1060" y="874" class="t">reason · decided_by · reviewed_by / reviewed_at</text>
+  <text x="1060" y="898" class="sh">moderation_events (append-only)</text>
+  <text x="1060" y="918" class="t">comment · time · actor (rule / ai / fallback / human)</text>
+  <text x="1060" y="936" class="t">action (created / override / deleted) · from → to</text>
+  <text x="1060" y="954" class="t">details JSON (model, prompt, rule, latency, raw)</text>
 
   <!-- ===================== ARROWS ===================== -->
   <!-- 1: browser posts the comment -->
@@ -171,8 +182,8 @@
   <line x1="1044" y1="596" x2="974" y2="596" class="resp" marker-end="url(#arrow)"/>
   <circle cx="1022" cy="596" r="10" fill="#0f172a"/><text x="1022" y="596" class="n">4</text>
   <!-- 5: store -->
-  <line x1="972" y1="781" x2="1042" y2="781" class="call" marker-end="url(#arrow)"/>
-  <circle cx="1022" cy="781" r="10" fill="#0f172a"/><text x="1022" y="781" class="n">5</text>
+  <line x1="972" y1="909" x2="1042" y2="909" class="call" marker-end="url(#arrow)"/>
+  <circle cx="1022" cy="909" r="10" fill="#0f172a"/><text x="1022" y="909" class="n">5</text>
   <!-- 7: moderator panel ↔ admin endpoints -->
   <line x1="348" y1="600" x2="402" y2="600" class="call"/>
   <line x1="402" y1="600" x2="402" y2="250" class="call"/>
@@ -180,20 +191,22 @@
   <circle cx="378" cy="600" r="10" fill="#0f172a"/><text x="378" y="600" class="n">7</text>
 
   <!-- ===================== STEPS ===================== -->
-  <rect x="24" y="868" width="1392" height="262" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
-  <text x="40" y="892" class="h">One comment, step by step (numbers match the arrows)</text>
-  <circle cx="50" cy="922" r="10" fill="#0f172a"/><text x="50" y="922" class="n">1</text>
-  <text x="72" y="926" class="t">The browser posts the author and text to POST /api/comments and shows the status box with a spinner and the elapsed seconds.</text>
-  <circle cx="50" cy="950" r="10" fill="#0f172a"/><text x="50" y="950" class="n">2</text>
-  <text x="72" y="954" class="t">The input guard checks length and rate; the detectors scan the author and text. A valid EGN, IBAN, phone or email, or text without content, is decided here and steps 3–4 are skipped.</text>
-  <circle cx="50" cy="978" r="10" fill="#0f172a"/><text x="50" y="978" class="n">3</text>
-  <text x="72" y="982" class="t">Otherwise the comment goes to the model in LM Studio inside &lt;user_comment&gt; tags, with the system prompt and a strict JSON schema for the verdict.</text>
-  <circle cx="50" cy="1006" r="10" fill="#0f172a"/><text x="50" y="1006" class="n">4</text>
-  <text x="72" y="1010" class="t">The verdict is validated (Pydantic). The policy applies its rules, can overrule a contradictory answer, and names the rule; an invalid answer or an outage sends the comment to review.</text>
-  <circle cx="50" cy="1034" r="10" fill="#0f172a"/><text x="50" y="1034" class="n">5</text>
-  <text x="72" y="1038" class="t">The comment and a "created" event (who decided, rule, model, prompt version, latency, raw answer) are saved in SQLite.</text>
-  <circle cx="50" cy="1062" r="10" fill="#0f172a"/><text x="50" y="1062" class="n">6</text>
-  <text x="72" y="1066" class="t">The browser gets status, category and reason: published comments appear in the public feed; blocked ones show the reason; reviewed ones wait for a moderator.</text>
-  <circle cx="50" cy="1090" r="10" fill="#0f172a"/><text x="50" y="1090" class="n">7</text>
-  <text x="72" y="1094" class="t">A moderator, with the admin token, filters the log, opens a comment's history, and approves, blocks or deletes it. Each action is appended to moderation_events.</text>
+  <rect x="24" y="996" width="1392" height="290" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="40" y="1020" class="h">One comment, step by step (numbers match the arrows)</text>
+  <circle cx="50" cy="1050" r="10" fill="#0f172a"/><text x="50" y="1050" class="n">1</text>
+  <text x="72" y="1054" class="t">The browser posts the author and text to POST /api/comments and shows the status box with a spinner and the elapsed seconds.</text>
+  <circle cx="50" cy="1078" r="10" fill="#0f172a"/><text x="50" y="1078" class="n">2</text>
+  <text x="72" y="1082" class="t">The input guard checks length and rate; the detectors scan the author and text. A valid EGN, IBAN, phone or email, or text without content, is decided here and steps 3–4 are skipped.</text>
+  <circle cx="50" cy="1106" r="10" fill="#0f172a"/><text x="50" y="1106" class="n">3</text>
+  <text x="72" y="1110" class="t">Otherwise the comment goes to the model in LM Studio inside &lt;user_comment&gt; tags, with the system prompt and a strict JSON schema for the verdict.</text>
+  <circle cx="50" cy="1134" r="10" fill="#0f172a"/><text x="50" y="1134" class="n">4</text>
+  <text x="72" y="1138" class="t">The verdict is validated (Pydantic). The policy applies its rules, can overrule a contradictory answer, and names the rule; an invalid answer or an outage sends the comment to review.</text>
+  <circle cx="50" cy="1162" r="10" fill="#0f172a"/><text x="50" y="1162" class="n">5</text>
+  <text x="72" y="1166" class="t">The comment and a "created" event (who decided, rule, model, prompt version, latency, raw answer) are saved in SQLite.</text>
+  <circle cx="50" cy="1190" r="10" fill="#0f172a"/><text x="50" y="1190" class="n">6</text>
+  <text x="72" y="1194" class="t">The browser gets status, category and reason: published comments appear in the public feed; blocked ones show the reason; reviewed ones wait for a moderator.</text>
+  <circle cx="50" cy="1218" r="10" fill="#0f172a"/><text x="50" y="1218" class="n">7</text>
+  <text x="72" y="1222" class="t">A moderator, with the admin token, filters the log, opens a comment's history, and approves, blocks or deletes it. Each action is appended to moderation_events.</text>
+  <circle cx="50" cy="1246" r="10" fill="#7c3aed"/><text x="50" y="1246" class="n">3b</text>
+  <text x="72" y="1250" class="t">At the same time the decision gate asks the model one closed question (publish / block / review) and reads the probability of the answer; an automatic decision the gate does not confirm goes to review.</text>
 </svg>
